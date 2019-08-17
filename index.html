@@ -158,12 +158,18 @@
         fetch(`https://api.github.com/gists/${parameters.get('gist')}`)
           .then((r) => r.json())
           .then((data) => {
-            const state = JSON.parse(data.files['state.json'].content);
-            mode.value = state.mode;
-            features = new Set(state.features);
-            const file = data.files[`code.${state.mode === 'script' ? 'js' : 'mjs'}`];
+            let content;
+            if (data.files['state.json']) {
+              const state = JSON.parse(data.files['state.json'].content);
+              mode.value = state.mode;
+              features = new Set(state.features);
+              content = data.files[`code.${state.mode === 'script' ? 'js' : 'mjs'}`].content;
+            } else {
+              const fileName = Object.keys(data.files)[0];
+              content = data.files[fileName].content;
+            }
             respawn();
-            editor.setValue(file.content);
+            editor.setValue(content);
           });
       } else {
         editor.setValue('print(\'Hello, World!\');');
