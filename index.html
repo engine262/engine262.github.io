@@ -55,14 +55,14 @@
           state.set('gist', parameters.get('gist'));
         } else {
           state.set('code', LZString.compressToBase64(editor.getValue()));
+          state.set('mode', mode.value);
+          state.set('features', [...features].join(','));
         }
-        state.set('features', [...features].join(','));
-        state.set('mode', mode.value);
         document.location.hash = state.toString();
       }
 
       let featuresPopulated = false;
-      const features = new Set(parameters.has('features') ? parameters.get('features').split(',') : []);
+      let features = new Set(parameters.has('features') ? parameters.get('features').split(',') : []);
       let worker;
 
       if (parameters.has('mode')) {
@@ -158,16 +158,12 @@
         fetch(`https://api.github.com/gists/${parameters.get('gist')}`)
           .then((r) => r.json())
           .then((data) => {
-            const fileName = Object.keys(data.files)[0];
-            const file = data.files[fileName];
-            editor.setValue(file.content);
-            if (fileName.endsWith('.js')) {
-              mode.value = 'script';
-            } else if (fileName.endsWith('.mjs')) {
-              mode.value = 'module';
-            }
-            saveState();
+            const state = JSON.parse(data.files['state.json'].content);
+            mode.value = state.mode;
+            features = new Set(state.features);
+            const file = data.files[`code.${state.mode === 'script' ? 'js' : 'mjs'}`];
             respawn();
+            editor.setValue(file.content);
           });
       } else {
         editor.setValue('print(\'Hello, World!\');');

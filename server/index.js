@@ -11,8 +11,8 @@ const EXTENSIONS = {
   __proto__: null,
 };
 
-function createGist(content, mode) {
-  const name = `code.${EXTENSIONS[mode]}`;
+function createGist(content, state) {
+  const name = `code.${EXTENSIONS[state.mode]}`;
   return fetch('https://api.github.com/gists', {
     method: 'POST',
     headers: {
@@ -20,7 +20,10 @@ function createGist(content, mode) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      files: { [name]: { content } },
+      files: {
+        [name]: { content },
+        'state.json': { content: JSON.stringify(state) },
+      },
       description: 'Code shared from https://engine262.js.org',
       public: false,
     }),
@@ -49,12 +52,14 @@ const server = http.createServer((req, res) => {
     body += chunk;
   });
   req.on('end', () => {
-    const { content, mode } = JSON.parse(body);
-    createGist(content, mode)
+    Promise.resolve()
+      .then(() => JSON.parse(body))
+      .then(({ content, state }) => createGist(content, state))
       .then((data) => {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify(data));
-      }, (e) => {
+      })
+      .catch((e) => {
         console.error(e); // eslint-disable-line no-console
         res.writeHead(500);
         res.end('500');
