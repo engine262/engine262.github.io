@@ -1,6 +1,5 @@
 'use strict';
 
-const http = require('http');
 const fetch = require('node-fetch');
 
 const AUTH = `Basic ${Buffer.from(`engine262-bot:${process.env.GH_TOKEN}`).toString('base64')}`;
@@ -31,40 +30,16 @@ function createGist(content, state) {
     .then((r) => r.json());
 }
 
-const server = http.createServer((req, res) => {
+module.exports = (req, res) => {
   if (req.headers.origin !== 'https://engine262.js.org') {
-    res.writeHead(403);
-    res.end('403');
-    return;
-  }
-  if (req.url !== '/gist') {
-    res.writeHead(404);
-    res.end('404');
-    return;
+    return res.status(403).send('403');
   }
   if (req.method !== 'POST') {
-    res.writeHead(405);
-    res.end('405');
-    return;
+    return res.status(405).send('405');
   }
-  let body = '';
-  req.on('data', (chunk) => {
-    body += chunk;
-  });
-  req.on('end', () => {
-    Promise.resolve()
-      .then(() => JSON.parse(body))
-      .then(({ content, state }) => createGist(content, state))
-      .then((data) => {
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify(data));
-      })
-      .catch((e) => {
-        console.error(e); // eslint-disable-line no-console
-        res.writeHead(500);
-        res.end('500');
-      });
-  });
-});
-
-server.listen(5000);
+  if (!req.body || !req.body.content || !req.body.state) {
+    return res.status(400).send('400');
+  }
+  return createGist(req.body.content, req.body.state)
+    .then((body) => res.status(200).json(body));
+};

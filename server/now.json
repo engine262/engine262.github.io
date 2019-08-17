@@ -1,0 +1,15 @@
+{
+  "name": "engine262-api",
+  "version": 2,
+  "routes": [
+    { "src": "/api/gist", "dest": "/api/gist.js" },
+    {
+      "src": ".*",
+      "status": 302,
+      "headers": { "Location": "https://engine262.js.org" }
+    }
+  ],
+  "env": {
+    "GH_TOKEN": "@gh_token"
+  }
+}
