@@ -1,4 +1,3 @@
-/* eslint-env browser */
 /* global CodeMirror */
 
 import { getState, setState } from './state.mjs';

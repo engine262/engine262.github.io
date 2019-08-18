@@ -1,5 +1,3 @@
-/* eslint-env browser */
-
 import './state.mjs';
 import './editor.mjs';
 

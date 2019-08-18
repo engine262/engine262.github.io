@@ -1,4 +1,3 @@
-/* eslint-env browser */
 /* global LZString */
 
 const query = new URLSearchParams(document.location.hash.slice(1));

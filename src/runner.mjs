@@ -1,5 +1,3 @@
-/* eslint-env browser */
-
 import { getState, updateState } from './state.mjs';
 
 const features = document.querySelector('#features');

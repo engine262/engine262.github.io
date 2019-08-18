@@ -14,6 +14,7 @@ const {
   Value,
   Throw,
   inspect,
+  Object: APIObject,
   FEATURES,
 } = self.engine262;
 
@@ -45,6 +46,29 @@ addEventListener('message', ({ data }) => {
       return Value.undefined;
     }, [], realm);
     Abstract.CreateDataProperty(realm.global, new Value(realm, 'print'), print);
+
+    const console = new APIObject(realm);
+    Abstract.CreateDataProperty(realm.global, new Value(realm, 'console'), console);
+
+    [
+      'log',
+      'warn',
+      'debug',
+      'error',
+      'clear',
+    ].forEach((method) => {
+      const fn = new Value(realm, (args) => {
+        postMessage({
+          type: 'console',
+          value: {
+            method,
+            values: args.map((a) => inspect(a)),
+          },
+        });
+        return Value.undefined;
+      });
+      Abstract.CreateDataProperty(console, new Value(realm, method), fn);
+    });
 
     postMessage({
       type: 'console',
