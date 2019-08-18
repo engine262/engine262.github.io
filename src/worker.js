@@ -17,30 +17,48 @@ const {
   FEATURES,
 } = self.engine262;
 
-postMessage({ FEATURES });
-
-let mode;
+postMessage({ type: 'initialize', value: { FEATURES } });
 
 addEventListener('message', ({ data }) => {
-  if (data.features) {
-    initializeAgent({
-      features: data.features,
-    });
-    mode = data.mode;
-  }
-  if (data.input) {
+  console.log('@WORKER', data); // eslint-disable-line no-console
+
+  if (data.type === 'evaluate') {
+    const { state, code } = data.value;
+
+    try {
+      initializeAgent({
+        features: [...state.get('features')],
+      });
+    } catch (e) {
+      // o.o
+    }
+
     const realm = new Realm();
     const print = new Value(realm, (args) => {
-      postMessage({ log: args.map((a) => inspect(a)) });
+      postMessage({
+        type: 'console',
+        value: {
+          method: 'log',
+          values: args.map((a) => inspect(a)),
+        },
+      });
       return Value.undefined;
     }, [], realm);
     Abstract.CreateDataProperty(realm.global, new Value(realm, 'print'), print);
 
+    postMessage({
+      type: 'console',
+      value: {
+        method: 'clear',
+        values: [],
+      },
+    });
+
     let result;
-    if (mode === 'script') {
-      result = realm.evaluateScript(data.input);
+    if (state.get('mode') === 'script') {
+      result = realm.evaluateScript(code);
     } else {
-      result = realm.createSourceTextModule('engine262.mjs', data.input);
+      result = realm.createSourceTextModule('engine262.mjs', code);
       if (!(result instanceof AbruptCompletion)) {
         const module = result;
         realm.moduleEntry = module;
@@ -61,7 +79,13 @@ addEventListener('message', ({ data }) => {
       } else {
         inspected = inspect(result, realm);
       }
-      postMessage({ error: inspected });
+      postMessage({
+        type: 'console',
+        value: {
+          method: 'error',
+          values: [inspected],
+        },
+      });
     }
   }
 });

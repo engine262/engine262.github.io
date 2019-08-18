@@ -57,7 +57,7 @@ textarea:disabled {
   flex-grow: 1;
   min-height: 200px;
 }
-#featureList {
+#features {
   margin: 0;
   padding: 0;
   list-style: none;
@@ -88,7 +88,7 @@ label {
   main > *:not(:first-child) {
     margin-left: 10px;
   }
-  #featureList {
+  #features {
     flex-wrap: wrap;
   }
 }

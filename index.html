@@ -9,22 +9,30 @@
       Loading...
     </dialog>
     <script>
-      loading.showModal();
+      try {
+        loading.showModal();
+      } catch (e) {}
       window.addEventListener('error', () => {
-        loading.close();
+        try {
+          loading.close();
+        } catch (e) {}
       });
     </script>
     <!-- github ribbon -->
     <a id="github" href="https://github.com/engine262/engine262" aria-label="Fork me on GitHub"></a>
+
     <h1>engine262</h1>
     <p>A self-hosted JavaScript engine for development and exploration.</p>
 
     <main>
       <section id="input-section">
-        <fieldset><legend>Features</legend>
-          <ul id="featureList"></ul>
+        <fieldset>
+          <legend>Features</legend>
+          <ul id="features"></ul>
         </fieldset>
-        <fieldset><legend>Editor</legend>
+
+        <fieldset>
+          <legend>Editor</legend>
           <label><input id="autoevaluate" checked type="checkbox">Auto Evaluate</label>
           <select id="mode">
             <option value="script" selected="selected" autocomplete="off">Script</option>
@@ -38,7 +46,6 @@
 
       <section id="output-section">
         <h2>Output:</h2>
-
         <textarea id="output" cols="80" autocomplete="off" disabled></textarea>
       </section>
     </main>
@@ -47,139 +54,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.48.2/mode/javascript/javascript.min.js"></script>
     <script src="https://unpkg.com/lz-string@1.4.4/libs/base64-string.js"></script>
     <script src="https://unpkg.com/lz-string@1.4.4/libs/lz-string.min.js"></script>
-    <script>
-      const parameters = new URLSearchParams(document.location.hash.slice(1));
-      function saveState() {
-        const state = new URLSearchParams();
-        if (parameters.has('gist')) {
-          state.set('gist', parameters.get('gist'));
-        } else {
-          state.set('code', LZString.compressToBase64(editor.getValue()));
-          state.set('mode', mode.value);
-          state.set('features', [...features].join(','));
-        }
-        document.location.hash = state.toString();
-      }
-
-      let featuresPopulated = false;
-      let features = new Set(parameters.has('features') ? parameters.get('features').split(',') : []);
-      let worker;
-
-      if (parameters.has('mode')) {
-        mode.value = parameters.get('mode');
-      }
-
-      function respawn() {
-        if (worker) {
-          worker.terminate();
-        }
-        worker = new Worker('./worker.js');
-        worker.addEventListener('message', ({ data }) => {
-          if (data.log) {
-            console.log(...data.log);
-            data.log.forEach((l) => {
-              output.value += l;
-              output.value += ' ';
-            });
-            output.value += '\n';
-          } else if (data.error) {
-            console.error(data.error);
-            output.value += data.error;
-            output.value += '\n';
-          } else if (data.FEATURES) {
-            if (!featuresPopulated) {
-              featuresPopulated = true;
-              data.FEATURES
-                .forEach(({ name }) => {
-                  const li = document.createElement('li');
-                  const input = document.createElement('input');
-                  input.type = 'checkbox';
-                  input.checked = features.has(name);
-                  input.addEventListener('click', () => {
-                    if (input.checked) {
-                      features.add(name);
-                    } else {
-                      features.delete(name);
-                    }
-                    saveState();
-                    respawn();
-                    runEvaluation();
-                  });
-                  const label = document.createElement('label');
-                  label.appendChild(input);
-                  const txt = document.createTextNode(name);
-                  label.appendChild(txt);
-                  li.appendChild(label);
-                  featureList.appendChild(li);
-                });
-            }
-          }
-        });
-        worker.postMessage({ features: [...features], mode: mode.value });
-      }
-
-      mode.addEventListener('change', () => {
-        saveState();
-        respawn();
-        runEvaluation();
-      });
-
-      respawn();
-
-      let onChangeTimer = null;
-      const editor = CodeMirror.fromTextArea(input, {
-        lineNumbers: true,
-        mode: 'javascript',
-      });
-
-      function runEvaluation() {
-        output.value = '';
-        saveState();
-        worker.postMessage({ input: editor.getValue() });
-      }
-
-      editor.on('change', () => {
-        if (!autoevaluate.checked) return;
-        if (onChangeTimer !== null) {
-          clearTimeout(onChangeTimer);
-        }
-        onChangeTimer = setTimeout(
-          () => {
-            onChangeTimer = null;
-            runEvaluation();
-          },
-          500
-        );
-      });
-
-      if (parameters.has('code')) {
-        editor.setValue(LZString.decompressFromBase64(parameters.get('code')));
-      } else if (parameters.has('gist')) {
-        fetch(`https://api.github.com/gists/${parameters.get('gist')}`)
-          .then((r) => r.json())
-          .then((data) => {
-            let content;
-            if (data.files['state.json']) {
-              const state = JSON.parse(data.files['state.json'].content);
-              mode.value = state.mode;
-              features = new Set(state.features);
-              content = data.files[`code.${state.mode === 'script' ? 'js' : 'mjs'}`].content;
-            } else {
-              const fileName = Object.keys(data.files)[0];
-              content = data.files[fileName].content;
-            }
-            respawn();
-            editor.setValue(content);
-          });
-      } else {
-        editor.setValue('print(\'Hello, World!\');');
-      }
-
-      run.addEventListener('click', () => {
-        runEvaluation();
-      });
-
-      loading.close();
+    <script type="module" src="./src/index.mjs"></script>
     </script>
   </body>
 </html>
