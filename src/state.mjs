@@ -27,13 +27,19 @@ if (query.has('gist')) {
         initial.set('mode', save.mode);
         initial.set('features', new Set(save.features));
       } else {
-        const fileName = Object.keys(data.files[0]);
+        const fileName = Object.keys(data.files)[0];
         const file = data.files[fileName];
         initial.set('code', file.content);
+        if (fileName.endsWith('.mjs')) {
+          initial.set('mode', 'module');
+        }
       }
       return initial;
     })
-    .catch(() => initial);
+    .catch((e) => {
+      console.error('Failed to load gist data', e); // eslint-disable-line no-console
+      return initial;
+    });
 } else {
   if (query.has('code')) {
     initial.set('code', LZString.decompressFromBase64(query.get('code')));
