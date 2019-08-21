@@ -80,9 +80,9 @@ addEventListener('message', ({ data }) => {
 
     let result;
     if (state.get('mode') === 'script') {
-      result = realm.evaluateScript(code);
+      result = realm.evaluateScript(code, { specifier: 'code.js' });
     } else {
-      result = realm.createSourceTextModule('engine262.mjs', code);
+      result = realm.createSourceTextModule('code.mjs', code);
       if (!(result instanceof AbruptCompletion)) {
         const module = result;
         realm.moduleEntry = module;
