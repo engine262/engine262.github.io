@@ -69,6 +69,7 @@ export function evaluate(code) {
     .then((state) => {
       state.set('code', code);
       worker.postMessage({ type: 'evaluate', value: { code, state } });
+      return updateState();
     });
 }
 
