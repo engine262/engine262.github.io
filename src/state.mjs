@@ -91,7 +91,7 @@ export function setState(name, value) {
 document.querySelector('#save-to-gist')
   .addEventListener('click', async () => {
     const s = await state;
-    const body = await fetch('https://engine262-api.snek.now.sh/api/gist', {
+    const id = await fetch('https://engine262-api.snek.now.sh/api/gist', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -104,8 +104,8 @@ document.querySelector('#save-to-gist')
         },
       }),
 
-    }).then((r) => r.json());
+    }).then((r) => r.text());
     isGist = true;
-    s.set('gist', body.id);
+    s.set('gist', id);
     await updateState();
   });

@@ -34,6 +34,11 @@ module.exports = (req, res) => {
   if (req.headers.origin !== 'https://engine262.js.org') {
     return res.status(403).send('403');
   }
+  if (req.method === 'OPTIONS') {
+    res.writeHead(200, { 'Allow': 'OPTIONS, POST' });
+    res.end();
+    return res;
+  }
   if (req.method !== 'POST') {
     return res.status(405).send('405');
   }
@@ -41,5 +46,5 @@ module.exports = (req, res) => {
     return res.status(400).send('400');
   }
   return createGist(req.body.content, req.body.state)
-    .then((body) => res.status(200).json(body));
+    .then((body) => res.status(200).end(body.id));
 };
