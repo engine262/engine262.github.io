@@ -2,6 +2,8 @@
 
 const query = new URLSearchParams(document.location.hash.slice(1));
 
+let isGist = query.has('gist');
+
 const EXTENSIONS = {
   __proto__: null,
   script: 'js',
@@ -67,7 +69,7 @@ export function updateState() {
   return state
     .then((s) => {
       const params = new URLSearchParams();
-      if (query.has('gist')) {
+      if (isGist) {
         params.set('gist', query.get('gist'));
       } else {
         params.set('code', LZString.compressToBase64(s.get('code')));
@@ -85,3 +87,25 @@ export function setState(name, value) {
     })
     .then(() => updateState());
 }
+
+document.querySelector('#save-to-gist')
+  .addEventListener('click', async () => {
+    const s = await state;
+    const body = await fetch('https://engine262-api.snek.now.sh/api/gist', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        content: s.get('code'),
+        state: {
+          mode: s.get('mode'),
+          features: [...s.get('features')],
+        },
+      }),
+
+    }).then((r) => r.json());
+    isGist = true;
+    s.set('gist', body.id);
+    await updateState();
+  });
