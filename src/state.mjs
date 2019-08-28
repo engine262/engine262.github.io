@@ -2,8 +2,6 @@
 
 const query = new URLSearchParams(document.location.hash.slice(1));
 
-let isGist = query.has('gist');
-
 const EXTENSIONS = {
   __proto__: null,
   script: 'js',
@@ -19,6 +17,7 @@ const initial = new Map([
 let state;
 
 if (query.has('gist')) {
+  initial.set('gist', query.get('gist'));
   state = fetch(`https://api.github.com/gists/${query.get('gist')}`)
     .then((r) => r.json())
     .then((data) => {
@@ -69,8 +68,8 @@ export function updateState() {
   return state
     .then((s) => {
       const params = new URLSearchParams();
-      if (isGist) {
-        params.set('gist', query.get('gist'));
+      if (s.has('gist')) {
+        params.set('gist', s.get('gist'));
       } else {
         params.set('code', LZString.compressToBase64(s.get('code')));
         params.set('mode', s.get('mode'));
@@ -103,9 +102,7 @@ document.querySelector('#save-to-gist')
           features: [...s.get('features')],
         },
       }),
-
     }).then((r) => r.text());
-    isGist = true;
     s.set('gist', id);
     await updateState();
   });
