@@ -2,7 +2,13 @@
   "name": "engine262-api",
   "version": 2,
   "routes": [
-    { "src": "/api/gist", "dest": "/api/gist.js" },
+    {
+      "src": "/api/gist",
+      "dest": "/api/gist.js",
+      "headers": {
+        "Access-Control-Allow-Headers": "content-type"
+      }
+    },
     {
       "src": ".*",
       "status": 302,
