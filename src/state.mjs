@@ -108,8 +108,8 @@ document.querySelector('#save-to-gist')
       .then((id) => {
         s.set('gist', id);
         saveSpan.textContent = `Saved! ${id}`;
-      })
-      .then(() => updateState))
+        return updateState();
+      }))
       .catch((e) => {
         saveSpan.textContent = `Error saving to gist: ${e.message}`;
       });
