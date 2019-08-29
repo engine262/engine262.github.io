@@ -87,10 +87,11 @@ export function setState(name, value) {
     .then(() => updateState());
 }
 
+const saveSpan = document.querySelector('#save-to-gist-output');
 document.querySelector('#save-to-gist')
-  .addEventListener('click', async () => {
-    const s = await state;
-    const id = await fetch('https://engine262-api.snek.now.sh/api/gist', {
+  .addEventListener('click', () => {
+    saveSpan.textContent = 'Saving...';
+    state.then((s) => fetch('https://engine262-api.snek.now.sh/api/gist', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -102,7 +103,14 @@ document.querySelector('#save-to-gist')
           features: [...s.get('features')],
         },
       }),
-    }).then((r) => r.text());
-    s.set('gist', id);
-    await updateState();
+    })
+      .then((r) => r.text())
+      .then((id) => {
+        s.set('gist', id);
+        saveSpan.textContent = `Saved! ${id}`;
+      })
+      .then(() => updateState))
+      .catch((e) => {
+        saveSpan.textContent = `Error saving to gist: ${e.message}`;
+      });
   });
