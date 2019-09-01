@@ -27,16 +27,23 @@ addEventListener('message', ({ data }) => {
   if (data.type === 'evaluate') {
     const { state, code } = data.value;
 
+    const promises = new Set();
     try {
       initializeAgent({
         features: [...state.get('features')],
         promiseRejectionTracker(promise, operation) {
+          switch (operation) {
+            case 'reject':
+              promises.add(promise);
+              break;
+            case 'handle':
+              promises.delete(promise);
+              break;
+            default:
+              break;
+          }
           if (operation === 'reject') {
-            postMessage({
-              type: 'unhandledRejection',
-              // eslint-disable-next-line no-use-before-define
-              value: inspect(promise.PromiseResult, realm),
-            });
+            promises.add(promise);
           }
         },
       });
@@ -57,28 +64,30 @@ addEventListener('message', ({ data }) => {
     }, [], realm);
     Abstract.CreateDataProperty(realm.global, new Value(realm, 'print'), print);
 
-    const console = new APIObject(realm);
-    Abstract.CreateDataProperty(realm.global, new Value(realm, 'console'), console);
+    {
+      const console = new APIObject(realm);
+      Abstract.CreateDataProperty(realm.global, new Value(realm, 'console'), console);
 
-    [
-      'log',
-      'warn',
-      'debug',
-      'error',
-      'clear',
-    ].forEach((method) => {
-      const fn = new Value(realm, (args) => {
-        postMessage({
-          type: 'console',
-          value: {
-            method,
-            values: args.map((a) => inspect(a)),
-          },
+      [
+        'log',
+        'warn',
+        'debug',
+        'error',
+        'clear',
+      ].forEach((method) => {
+        const fn = new Value(realm, (args) => {
+          postMessage({
+            type: 'console',
+            value: {
+              method,
+              values: args.map((a) => inspect(a)),
+            },
+          });
+          return Value.undefined;
         });
-        return Value.undefined;
+        Abstract.CreateDataProperty(console, new Value(realm, method), fn);
       });
-      Abstract.CreateDataProperty(console, new Value(realm, method), fn);
-    });
+    }
 
     postMessage({
       type: 'console',
@@ -112,6 +121,14 @@ addEventListener('message', ({ data }) => {
           method: 'error',
           values: [inspect(result, realm)],
         },
+      });
+    }
+
+    for (const promise of promises) {
+      postMessage({
+        type: 'unhandledRejection',
+        // eslint-disable-next-line no-use-before-define
+        value: inspect(promise.PromiseResult, realm),
       });
     }
   }
