@@ -47,16 +47,41 @@ textarea:disabled {
   border: 1px solid black;
   color: black;
 }
+
 #input-section, #output-section {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
   flex-shrink: 1;
 }
+
 #output {
   flex-grow: 1;
   min-height: 200px;
+  background-color: white;
+  border: 1px solid black;
+  font-family: monospace;
+  white-space: pre-wrap;
 }
+#output > div {
+  padding-left: 0.3em;
+}
+
+[class*="log"] {
+  border-bottom: 1px solid black;
+}
+
+.log-warn {
+  background-color: yellow;
+}
+
+.log-debug {}
+
+.log-error {
+  background-color: #FF000070;
+}
+
+
 #features {
   margin: 0;
   padding: 0;

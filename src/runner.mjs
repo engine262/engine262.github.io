@@ -52,14 +52,27 @@ function respawn(first = false) {
       });
     } else if (data.type === 'console') {
       if (data.value.method === 'clear') {
-        output.value = '';
+        const range = document.createRange();
+        range.selectNodeContents(output);
+        range.deleteContents();
       } else {
+        const line = document.createElement('span');
         data.value.values.forEach((v) => {
-          output.value += v;
-          output.value += ' ';
+          line.textContent += v;
+          line.textContent += ' ';
         });
-        output.value += '\n';
+        const container = document.createElement('div');
+        container.className = `log-${data.value.method}`;
+        container.appendChild(line);
+        output.appendChild(container);
       }
+    } else if (data.type === 'unhandledRejection') {
+      const line = document.createElement('span');
+      line.textContent = `Unhandled Rejection:\n${data.value}`;
+      const container = document.createElement('div');
+      container.className = 'log-error';
+      container.appendChild(line);
+      output.appendChild(container);
     }
   });
 }

@@ -1,6 +1,7 @@
 'use strict';
 
 /* eslint-env worker */
+/* eslint-disable no-restricted-globals */
 
 importScripts('https://unpkg.com/acorn@7.0.0/dist/acorn.js');
 importScripts('https://unpkg.com/nearley@2.16.0/lib/nearley.js');
@@ -29,6 +30,15 @@ addEventListener('message', ({ data }) => {
     try {
       initializeAgent({
         features: [...state.get('features')],
+        promiseRejectionTracker(promise, operation) {
+          if (operation === 'reject') {
+            postMessage({
+              type: 'unhandledRejection',
+              // eslint-disable-next-line no-use-before-define
+              value: inspect(promise.PromiseResult, realm),
+            });
+          }
+        },
       });
     } catch (e) {
       // o.o
