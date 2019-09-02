@@ -27,31 +27,29 @@ addEventListener('message', ({ data }) => {
   if (data.type === 'evaluate') {
     const { state, code } = data.value;
 
-    const promises = new Set();
     try {
       initializeAgent({
         features: [...state.get('features')],
-        promiseRejectionTracker(promise, operation) {
-          switch (operation) {
-            case 'reject':
-              promises.add(promise);
-              break;
-            case 'handle':
-              promises.delete(promise);
-              break;
-            default:
-              break;
-          }
-          if (operation === 'reject') {
-            promises.add(promise);
-          }
-        },
       });
     } catch (e) {
       // o.o
     }
 
-    const realm = new Realm();
+    const promises = new Set();
+    const realm = new Realm({
+      promiseRejectionTracker(promise, operation) {
+        switch (operation) {
+          case 'reject':
+            promises.add(promise);
+            break;
+          case 'handle':
+            promises.delete(promise);
+            break;
+          default:
+            break;
+        }
+      },
+    });
     const print = new Value(realm, (args) => {
       postMessage({
         type: 'console',
