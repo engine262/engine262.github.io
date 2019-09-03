@@ -4,12 +4,7 @@
   "routes": [
     {
       "src": "/api/gist",
-      "dest": "/api/gist.js",
-      "headers": {
-        "Access-Control-Allow-Origin": "https://engine262.js.org",
-        "Access-Control-Allow-Headers": "content-type",
-        "Access-Control-Allow-Methods": "OPTIONS, POST"
-      }
+      "dest": "/api/gist.js"
     }
   ],
   "env": {
