@@ -10,11 +10,6 @@
         "Access-Control-Allow-Headers": "content-type",
         "Access-Control-Allow-Methods": "OPTIONS, POST"
       }
-    },
-    {
-      "src": ".*",
-      "status": 302,
-      "headers": { "Location": "https://engine262.js.org" }
     }
   ],
   "env": {
