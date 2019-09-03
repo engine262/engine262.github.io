@@ -13,25 +13,29 @@ const editor = CodeMirror.fromTextArea(document.querySelector('#input'), {
 });
 
 let onChangeTimer;
-function run() {
-  if (onChangeTimer !== null) {
-    clearTimeout(onChangeTimer);
-  }
-  onChangeTimer = setTimeout(() => {
-    onChangeTimer = null;
+function run(timer) {
+  if (timer) {
+    if (onChangeTimer !== null) {
+      clearTimeout(onChangeTimer);
+    }
+    onChangeTimer = setTimeout(() => {
+      onChangeTimer = null;
+      evaluate(editor.getValue());
+    }, 500);
+  } else {
     evaluate(editor.getValue());
-  }, 500);
+  }
 }
 
 editor.on('change', () => {
   if (!autoEvaluate.checked) {
     return;
   }
-  run();
+  run(true);
 });
 
 runButton.addEventListener('click', () => {
-  run();
+  run(false);
 });
 
 getState('code')
@@ -41,7 +45,7 @@ getState('code')
 
 mode.addEventListener('change', () => {
   setState('mode', mode.value);
-  run();
+  run(false);
 });
 
 getState('mode')
