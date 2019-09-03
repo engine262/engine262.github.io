@@ -5,6 +5,10 @@
     {
       "src": "/api/gist",
       "dest": "/api/gist.js"
+    },
+    {
+      "src": "/engine262/engine262.js",
+      "dest": "/api/bridge.js"
     }
   ],
   "env": {
