@@ -5,7 +5,7 @@
 
 importScripts('https://unpkg.com/acorn@7.0.0/dist/acorn.js');
 importScripts('https://unpkg.com/nearley@2.16.0/lib/nearley.js');
-importScripts(`/engine262/engine262.js?_=${Date.now()}`);
+importScripts('/engine262/engine262.js');
 
 const {
   initializeAgent,
