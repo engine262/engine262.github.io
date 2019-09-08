@@ -78,7 +78,12 @@ addEventListener('message', ({ data }) => {
             type: 'console',
             value: {
               method,
-              values: args.map((a) => inspect(a)),
+              values: args.map((a, i) => {
+                if (i === 0 && Abstract.Type(a) === 'String') {
+                  return a.stringValue();
+                }
+                return inspect(a);
+              }),
             },
           });
           return Value.undefined;
