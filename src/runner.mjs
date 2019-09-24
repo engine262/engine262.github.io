@@ -36,17 +36,27 @@ function respawn(first = false) {
               respawn();
             });
         });
+
         getState('features')
           .then((requestedFeatures) => {
             input.checked = requestedFeatures.has(name);
           });
 
+
+
+        const id = name.replace(/\W+/g, '_');
+        input.id = id;
+
         const label = document.createElement('label');
-        label.appendChild(input);
+        label.htmlFor = id;
         label.appendChild(document.createTextNode(name));
 
+        const pair = document.createElement('div');
+        pair.appendChild(input);
+        pair.appendChild(label);
+
         const li = document.createElement('li');
-        li.appendChild(label);
+        li.appendChild(pair);
 
         features.appendChild(li);
       });
