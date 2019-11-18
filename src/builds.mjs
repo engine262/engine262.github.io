@@ -61,10 +61,12 @@ const schema = {
 
 getBuilds('engine262/engine262')
   .then((builds) => {
-    schema.data.values = builds.map((b) => ({
-      state: b.state,
-      finished_at: b.finished_at,
-      duration: b.duration / 60,
-    }));
+    schema.data.values = builds
+      .filter((b) => schema.encoding.color.scale.domain.includes(b.state))
+      .map((b) => ({
+        state: b.state,
+        finished_at: b.finished_at,
+        duration: b.duration / 60,
+      }));
     vegaEmbed('#view', schema);
   });
