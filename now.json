@@ -6,7 +6,8 @@
       "src": "/api/gist",
       "dest": "/api/gist.js",
       "headers": {
-        "Access-Control-Allow-Origin": "*"
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "*"
       }
     },
     {
