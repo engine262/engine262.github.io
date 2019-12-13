@@ -4,7 +4,10 @@
   "routes": [
     {
       "src": "/api/gist",
-      "dest": "/api/gist.js"
+      "dest": "/api/gist.js",
+      "headers": {
+        "Access-Control-Allow-Origin": "*"
+      }
     },
     {
       "src": "/engine262/engine262.js",
