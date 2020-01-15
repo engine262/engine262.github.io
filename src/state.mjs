@@ -91,7 +91,7 @@ const saveSpan = document.querySelector('#save-to-gist-output');
 document.querySelector('#save-to-gist')
   .addEventListener('click', () => {
     saveSpan.textContent = 'Saving...';
-    state.then((s) => fetch('https://api.engine262.js.org/api/gist', {
+    state.then((s) => fetch('https://api.engine262.js.org/gist', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

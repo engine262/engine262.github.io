@@ -3,7 +3,7 @@
   "version": 2,
   "routes": [
     {
-      "src": "/api/gist",
+      "src": "/gist",
       "dest": "/api/gist.js",
       "headers": {
         "Access-Control-Allow-Origin": "*",
@@ -13,6 +13,10 @@
     {
       "src": "/download",
       "dest": "/api/download.js"
+    },
+    {
+      "src": "/(.*)",
+      "status": 404
     }
   ],
   "env": {
