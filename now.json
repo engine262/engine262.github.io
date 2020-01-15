@@ -17,6 +17,7 @@
     },
     {
       "src": "/.*",
+      "status": 404,
       "dest": "/does-not-exist"
     }
   ],
