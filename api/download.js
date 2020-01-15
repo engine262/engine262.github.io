@@ -19,14 +19,18 @@ module.exports = (req, res) => {
     headers: { ...req.headers, authorization },
   })
     .then((r) => r.json())
-    .then((r) => r.versions[r['dist-tags'].latest].dist.tarball)
-    .then((link) => fetch(link, {
-      redirect: 'manual',
-      headers: { authorization },
-    }))
     .then((r) => {
-      res.status(302);
-      res.setHeader('location', r.headers.get('location'));
-      return res.end();
+      const latest = r['dist-tags'].latest;
+      const link = r.versions[r['dist-tags'].latest].dist.tarball;
+      return fetch(link, {
+        redirect: 'manual',
+        headers: { authorization },
+      }).then((r2) => {
+        res.status(200);
+        return res.json({
+          latest,
+          tarball: r2.headers.get('location'),
+        });
+      });
     });
 };
