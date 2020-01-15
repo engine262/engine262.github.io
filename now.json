@@ -17,6 +17,10 @@
     {
       "src": "/engine262/engine262.js.map",
       "dest": "/api/bridge.js"
+    },
+    {
+      "src": "/download",
+      "dest": "/api/download.js"
     }
   ],
   "env": {
