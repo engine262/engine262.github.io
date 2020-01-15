@@ -19,10 +19,7 @@ module.exports = (req, res) => {
     headers: { ...req.headers, authorization },
   })
     .then((r) => r.json())
-    .then((r) => {
-      console.log(r);
-      return r.versions[r['dist-tags'].latest].dist.tarball;
-    })
+    .then((r) => r.versions[r['dist-tags'].latest].dist.tarball)
     .then((link) => fetch(link, {
       redirect: 'manual',
       headers: { authorization },
