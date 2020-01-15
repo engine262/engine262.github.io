@@ -1,5 +1,6 @@
 {
   "name": "engine262-api",
+  "scope": "engine262",
   "version": 2,
   "routes": [
     {
@@ -15,8 +16,8 @@
       "dest": "/api/download.js"
     },
     {
-      "src": "/(.*)",
-      "status": 404
+      "src": "/.*",
+      "dest": "/does-not-exist"
     }
   ],
   "env": {
