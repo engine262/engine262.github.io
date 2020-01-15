@@ -21,7 +21,11 @@ module.exports = (req, res) => {
     .then((r) => r.json())
     .then((r) => {
       const latest = r['dist-tags'].latest;
-      const link = r.versions[r['dist-tags'].latest].dist.tarball;
+      const selected = req.query.version || latest;
+      if (!r.versions[selected]) {
+        return res.status(404).end('no such version');
+      }
+      const link = r.versions[selected].dist.tarball;
       return fetch(link, {
         redirect: 'manual',
         headers: { authorization },
@@ -29,6 +33,7 @@ module.exports = (req, res) => {
         res.status(200);
         return res.json({
           latest,
+          selected,
           tarball: r2.headers.get('location'),
         });
       });
