@@ -16,6 +16,10 @@
       "dest": "/api/download.js"
     },
     {
+      "src": "/latest-version",
+      "dest": "/api/latest_version.js"
+    },
+    {
       "src": "/.*",
       "status": 404,
       "dest": "/does-not-exist"

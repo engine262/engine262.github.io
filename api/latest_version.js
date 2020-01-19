@@ -20,17 +20,10 @@ module.exports = (req, res) => {
   })
     .then((r) => r.json())
     .then((r) => {
-      const selected = req.query.version;
-      if (!r.versions[selected]) {
-        return res.status(404).end('no such version');
-      }
-      const link = r.versions[selected].dist.tarball;
-      return fetch(link, {
-        redirect: 'manual',
-        headers: { authorization },
-      }).then((r2) => {
-        res.writeHead(r2.status, r2.headers.raw());
-        r2.body.pipe(res);
+      const latest = r['dist-tags'].latest;
+      res.status(200);
+      return res.json({
+        latest,
       });
     });
 };
