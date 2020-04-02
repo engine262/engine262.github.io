@@ -24,7 +24,7 @@ function createGist(content, state) {
         'state.json': { content: JSON.stringify(state) },
       },
       description: 'Code shared from https://engine262.js.org',
-      public: false,
+      public: true,
     }),
   })
     .then((r) => r.json());
