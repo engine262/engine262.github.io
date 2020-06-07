@@ -27,6 +27,7 @@ addEventListener('message', ({ data }) => {
 
     const agent = new Agent({
       features: [...state.get('features')],
+      onDebugger() { debugger }, // eslint-disable-line no-debugger
     });
 
     agent.scope(() => {
