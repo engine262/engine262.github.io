@@ -7,13 +7,18 @@ importScripts('/engine262/engine262.js');
 
 const {
   Agent,
-  Realm,
-  Abstract,
-  AbruptCompletion,
   Value,
+  ManagedRealm,
+
+  Type,
+  CreateDataProperty,
+  OrdinaryObjectCreate,
+
+  AbruptCompletion,
   Throw,
+
+  setSurroundingAgent,
   inspect,
-  Object: APIObject,
   FEATURES,
 } = self.engine262;
 
@@ -28,24 +33,26 @@ addEventListener('message', ({ data }) => {
     const agent = new Agent({
       features: [...state.get('features')],
     });
+    setSurroundingAgent(agent);
 
-    agent.scope(() => {
-      const promises = new Set();
-      const realm = new Realm({
-        promiseRejectionTracker(promise, operation) {
-          switch (operation) {
-            case 'reject':
-              promises.add(promise);
-              break;
-            case 'handle':
-              promises.delete(promise);
-              break;
-            default:
-              break;
-          }
-        },
-      });
-      const print = new Value(realm, (args) => {
+    const promises = new Set();
+    const realm = new ManagedRealm({
+      promiseRejectionTracker(promise, operation) {
+        switch (operation) {
+          case 'reject':
+            promises.add(promise);
+            break;
+          case 'handle':
+            promises.delete(promise);
+            break;
+          default:
+            break;
+        }
+      },
+    });
+
+    realm.scope(() => {
+      const print = new Value((args) => {
         postMessage({
           type: 'console',
           value: {
@@ -54,12 +61,12 @@ addEventListener('message', ({ data }) => {
           },
         });
         return Value.undefined;
-      }, [], realm);
-      Abstract.CreateDataProperty(realm.global, new Value(realm, 'print'), print);
+      });
+      CreateDataProperty(realm.GlobalObject, new Value('print'), print);
 
       {
-        const console = new APIObject(realm);
-        Abstract.CreateDataProperty(realm.global, new Value(realm, 'console'), console);
+        const console = OrdinaryObjectCreate(agent.intrinsic('%Object.prototype%'));
+        CreateDataProperty(realm.GlobalObject, new Value('console'), console);
 
         [
           'log',
@@ -68,13 +75,13 @@ addEventListener('message', ({ data }) => {
           'error',
           'clear',
         ].forEach((method) => {
-          const fn = new Value(realm, (args) => {
+          const fn = new Value((args) => {
             postMessage({
               type: 'console',
               value: {
                 method,
                 values: args.map((a, i) => {
-                  if (i === 0 && Abstract.Type(a) === 'String') {
+                  if (i === 0 && Type(a) === 'String') {
                     return a.stringValue();
                   }
                   return inspect(a);
@@ -83,7 +90,7 @@ addEventListener('message', ({ data }) => {
             });
             return Value.undefined;
           });
-          Abstract.CreateDataProperty(console, new Value(realm, method), fn);
+          CreateDataProperty(console, new Value(method), fn);
         });
       }
 
@@ -107,7 +114,7 @@ addEventListener('message', ({ data }) => {
           if (!(result instanceof AbruptCompletion)) {
             result = module.Evaluate();
             if (result.PromiseState === 'rejected') {
-              result = Throw(realm, result.PromiseResult);
+              result = Throw(result.PromiseResult);
             }
           }
         }
@@ -117,7 +124,7 @@ addEventListener('message', ({ data }) => {
           type: 'console',
           value: {
             method: 'error',
-            values: [inspect(result, realm)],
+            values: [inspect(result)],
           },
         });
       }
@@ -126,7 +133,7 @@ addEventListener('message', ({ data }) => {
         postMessage({
           type: 'unhandledRejection',
           // eslint-disable-next-line no-use-before-define
-          value: inspect(promise.PromiseResult, realm),
+          value: inspect(promise.PromiseResult),
         });
       }
     });
