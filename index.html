@@ -11,11 +11,11 @@
     </dialog>
     <script>
       try {
-        loading.showModal();
+        document.querySelector('#loading').showModal();
       } catch (e) {}
       window.addEventListener('error', () => {
         try {
-          loading.close();
+          document.querySelector('#loading').close();
         } catch (e) {}
       });
     </script>
