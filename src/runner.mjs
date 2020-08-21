@@ -14,7 +14,7 @@ function respawn(first = false) {
 
     if (first && data.type === 'initialize') {
       const { FEATURES } = data.value;
-      FEATURES.forEach(({ name }) => {
+      FEATURES.forEach(({ name, flag }) => {
         // <li>
         //   <label>
         //     <input type="checkbox">
@@ -28,9 +28,9 @@ function respawn(first = false) {
           getState('features')
             .then((f) => {
               if (input.checked) {
-                f.add(name);
+                f.add(flag);
               } else {
-                f.delete(name);
+                f.delete(flag);
               }
               updateState();
               respawn();
@@ -38,7 +38,7 @@ function respawn(first = false) {
         });
         getState('features')
           .then((requestedFeatures) => {
-            input.checked = requestedFeatures.has(name);
+            input.checked = requestedFeatures.has(flag);
           });
 
         const label = document.createElement('label');
