@@ -1,10 +1,13 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300&display=swap');
+
 html, body {
   padding: 0;
   margin: 0;
   overflow: auto;
-  background-color: #f7df1e;
+  background-color: #ffc107;
   display: flex;
   flex-direction: column;
+  font-family: 'Poppins', sans-serif;
 }
 h1, h2 {
   margin: 0;
@@ -23,7 +26,6 @@ legend {
   margin-bottom: 5px;
 }
 body {
-  font-family: sans-serif;
   padding: 10px;
   display: flex;
   flex-direction: column;
@@ -41,7 +43,7 @@ textarea {
 }
 .CodeMirror {
   flex-grow: 1;
-  border: 1px solid black;
+  /* border: 1px solid black; */
 }
 textarea:disabled {
   border: 1px solid black;
@@ -53,6 +55,7 @@ textarea:disabled {
   flex-direction: column;
   flex-grow: 1;
   flex-shrink: 1;
+  border: none;
 }
 
 #output {
@@ -65,6 +68,14 @@ textarea:disabled {
 }
 #output > div {
   padding-left: 0.3em;
+}
+
+button {
+  border: none;
+  border-radius: 20px;
+  padding: 5px;
+  background-color: #fff;
+  color: #000000;
 }
 
 [class*="log"] {
