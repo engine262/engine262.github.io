@@ -20,7 +20,7 @@ const {
   setSurroundingAgent,
   inspect,
   FEATURES,
-} = self.engine262;
+} = self['@engine262/engine262'];
 
 postMessage({ type: 'initialize', value: { FEATURES } });
 
