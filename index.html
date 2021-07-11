@@ -21,9 +21,10 @@
     </script>
     <!-- github ribbon -->
     <a id="github" href="https://github.com/engine262/engine262" aria-label="Fork me on GitHub"></a>
-
-    <h1>engine262</h1>
-    <p>A JavaScript engine written in JavaScript for development and exploration.</p>
+    <nav>
+      <a href="/">engine262</a>
+      <p>A JavaScript engine written in JavaScript for development and exploration.</p>
+    </nav>
 
     <main>
       <section id="input-section">
@@ -34,13 +35,17 @@
 
         <fieldset>
           <legend>Editor</legend>
-          <label><input id="autoevaluate" checked type="checkbox">Auto Evaluate</label>
-          <select id="mode">
-            <option value="script" selected="selected" autocomplete="off">Script</option>
-            <option value="module">Module</option>
-          </select>
-          <button type="button" id="save-to-gist">Save to Gist</button>
-          <span id="save-to-gist-output"></span>
+          <input id="autoevaluate" checked type="checkbox">
+          <label for="autoevaluate">Auto Evaluate</label>
+          <span class="row">
+            <select id="mode">
+              <option value="script" selected="selected" autocomplete="off">Script</option>
+              <option value="module">Module</option>
+            </select>
+
+            <button type="button" id="save-to-gist">Save to Gist</button>
+            <span id="save-to-gist-output"></span>
+          </span>
         </fieldset>
 
         <textarea id="input" autocomplete="off"></textarea>
