@@ -113,11 +113,14 @@ addEventListener('message', ({ data }) => {
         if (!(result instanceof AbruptCompletion)) {
           const module = result;
           realm.moduleEntry = module;
-          result = module.Link();
+          result = module.LoadRequestedModules();
           if (!(result instanceof AbruptCompletion)) {
-            result = module.Evaluate();
-            if (result.PromiseState === 'rejected') {
-              result = Throw(result.PromiseResult);
+            result = module.Link();
+            if (!(result instanceof AbruptCompletion)) {
+              result = module.Evaluate();
+              if (result.PromiseState === 'rejected') {
+                result = Throw(result.PromiseResult);
+              }
             }
           }
         }
