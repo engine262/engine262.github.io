@@ -13,6 +13,7 @@ const {
   Type,
   CreateDataProperty,
   OrdinaryObjectCreate,
+  CreateBuiltinFunction,
 
   AbruptCompletion,
   Throw,
@@ -55,7 +56,7 @@ addEventListener('message', ({ data }) => {
     });
 
     realm.scope(() => {
-      const print = new Value((args) => {
+      const print = CreateBuiltinFunction((args) => {
         postMessage({
           type: 'console',
           value: {
@@ -64,12 +65,12 @@ addEventListener('message', ({ data }) => {
           },
         });
         return Value.undefined;
-      });
-      CreateDataProperty(realm.GlobalObject, new Value('print'), print);
+      }, 1, Value('print'), []);
+      CreateDataProperty(realm.GlobalObject, Value('print'), print);
 
       {
         const console = OrdinaryObjectCreate(agent.intrinsic('%Object.prototype%'));
-        CreateDataProperty(realm.GlobalObject, new Value('console'), console);
+        CreateDataProperty(realm.GlobalObject, Value('console'), console);
 
         [
           'log',
@@ -78,7 +79,7 @@ addEventListener('message', ({ data }) => {
           'error',
           'clear',
         ].forEach((method) => {
-          const fn = new Value((args) => {
+          const fn = CreateBuiltinFunction((args) => {
             postMessage({
               type: 'console',
               value: {
@@ -92,8 +93,8 @@ addEventListener('message', ({ data }) => {
               },
             });
             return Value.undefined;
-          });
-          CreateDataProperty(console, new Value(method), fn);
+          }, 1, Value(''), null);
+          CreateDataProperty(console, Value(method), fn);
         });
       }
 
