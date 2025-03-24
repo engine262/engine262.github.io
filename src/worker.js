@@ -8,20 +8,22 @@ importScripts('/engine262/engine262.js');
 const {
   Agent,
   Value,
+  JSStringValue,
   ManagedRealm,
 
-  Type,
   CreateDataProperty,
   OrdinaryObjectCreate,
   CreateBuiltinFunction,
 
+  evalQ,
+  skipDebugger,
+  ThrowCompletion,
   AbruptCompletion,
-  Throw,
 
   setSurroundingAgent,
   inspect,
   FEATURES,
-} = self['@engine262/engine262'];
+} = /** @type {import('../../engine262/declaration/index.d.mts')} */ (self['@engine262/engine262'])
 
 postMessage({ type: 'initialize', value: { FEATURES } });
 
@@ -66,11 +68,11 @@ addEventListener('message', ({ data }) => {
         });
         return Value.undefined;
       }, 1, Value('print'), []);
-      CreateDataProperty(realm.GlobalObject, Value('print'), print);
+      skipDebugger(CreateDataProperty(realm.GlobalObject, Value('print'), print))
 
       {
         const console = OrdinaryObjectCreate(agent.intrinsic('%Object.prototype%'));
-        CreateDataProperty(realm.GlobalObject, Value('console'), console);
+        skipDebugger(CreateDataProperty(realm.GlobalObject, Value('console'), console));
 
         [
           'log',
@@ -85,7 +87,7 @@ addEventListener('message', ({ data }) => {
               value: {
                 method,
                 values: args.map((a, i) => {
-                  if (i === 0 && Type(a) === 'String') {
+                  if (i === 0 && a instanceof JSStringValue) {
                     return a.stringValue();
                   }
                   return inspect(a);
@@ -93,7 +95,7 @@ addEventListener('message', ({ data }) => {
               },
             });
             return Value.undefined;
-          }, 1, Value(''), null);
+          }, 1, Value(''), []);
           CreateDataProperty(console, Value(method), fn);
         });
       }
@@ -110,21 +112,15 @@ addEventListener('message', ({ data }) => {
       if (state.get('mode') === 'script') {
         result = realm.evaluateScript(code, { specifier: 'code.js' });
       } else {
-        result = realm.createSourceTextModule('code.mjs', code);
-        if (!(result instanceof AbruptCompletion)) {
-          const module = result;
-          realm.moduleEntry = module;
-          result = module.LoadRequestedModules();
-          if (!(result instanceof AbruptCompletion)) {
-            result = module.Link();
-            if (!(result instanceof AbruptCompletion)) {
-              result = module.Evaluate();
-              if (result.PromiseState === 'rejected') {
-                result = Throw(result.PromiseResult);
-              }
+        result = evalQ((Q) => {
+            const module = Q(realm.createSourceTextModule('code.mjs', code))
+            Q(module.LoadRequestedModules())
+            Q(module.Link())
+            const promise = Q(skipDebugger(module.Evaluate()))
+            if (promise.PromiseState === 'rejected') {
+                return ThrowCompletion(promise.PromiseResult || Value.undefined)
             }
-          }
-        }
+        })
       }
       if (result instanceof AbruptCompletion) {
         postMessage({
