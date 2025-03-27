@@ -96,7 +96,7 @@ addEventListener('message', ({ data }) => {
             });
             return Value.undefined;
           }, 1, Value(''), []);
-          CreateDataProperty(console, Value(method), fn);
+          skipDebugger(CreateDataProperty(console, Value(method), fn));
         });
       }
 
