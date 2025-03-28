@@ -34,6 +34,13 @@ module.exports = {
     'import/extensions': 'off',
     'import/prefer-default-export': 'off',
     'import/no-mutable-exports': 'off',
+    'import/named': 'off',
+    'import/no-unresolved': 'off',
+    'no-unused-expressions': 'off',
+    'no-console': 'off',
+    'no-restricted-globals': 'off',
+    'class-methods-use-this': 'off',
+    'no-use-before-define': 'off',
     'global-require': 'off',
   },
 };

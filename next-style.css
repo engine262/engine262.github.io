@@ -1,0 +1,75 @@
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: rgb(41 42 45);
+    }
+}
+:root {
+  --engine262-icon: url('https://avatars.githubusercontent.com/u/51185628?s=200&v=4');
+  --ref-palette-primary0: var(--ref-palette-yellow0) !important;
+  --ref-palette-primary10: var(--ref-palette-yellow10) !important;
+  --ref-palette-primary20: var(--ref-palette-yellow20) !important;
+  --ref-palette-primary30: var(--ref-palette-yellow30) !important;
+  --ref-palette-primary40: var(--ref-palette-yellow40) !important;
+  --ref-palette-primary50: var(--ref-palette-yellow50) !important;
+  --ref-palette-primary60: var(--ref-palette-yellow60) !important;
+  --ref-palette-primary70: var(--ref-palette-yellow70) !important;
+  --ref-palette-primary80: var(--ref-palette-yellow80) !important;
+  --ref-palette-primary90: var(--ref-palette-yellow90) !important;
+  --ref-palette-primary100: var(--ref-palette-yellow100) !important;
+}
+#engine262-readme {
+  padding: 0em 2em;
+}
+#engine262-readme article *:last-child {
+  padding-bottom: 1em;
+}
+
+.page-title {
+  display: flex;
+  align-items: center;
+    font-size: var(--sys-size-9);
+    color: var(--sys-color-on-surface);
+    margin: var(--sys-size-10) var(--sys-size-5) var(--sys-size-5);
+}
+.page-title::before {
+  content: '';
+  width: var(--sys-size-9);
+  height: var(--sys-size-9);
+  margin-right: var(--sys-size-6);
+  background-image: var(--engine262-icon);
+  background-size: 100% 100%;
+}
+.page-title a {
+  text-decoration: none;
+  color: var(--ref-palette-primary70);
+}
+
+.page-content {
+  margin: var(--sys-size-7);
+}
+
+.root-view {
+  background-color: var(--app-color-toolbar-background) !important;
+}
+
+#fork {
+  position: fixed;
+  right: 0;
+  z-index: 1;
+}
+#star-me {
+  position: fixed;
+  line-height: 18px;
+  text-align: center;
+  transform: rotate(45deg);
+  padding: 8px 0;
+  right: -60px;
+  top: 44px;
+  box-sizing: border-box;
+  width: 230px;
+  background: rgb(19, 22, 32);
+  color: white;
+  box-shadow: 0 5px 5px rgba(0, 0, 0, 0.1);
+  letter-spacing: 1px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}

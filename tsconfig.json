@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "paths": {
+            "chrome-devtools-frontend/*": ["./lib/chrome-devtools-frontend/*"],
+            "/engine262/engine262.mjs": ["./lib/engine262/engine262.mjs"],
+        },
+        "checkJs": true,
+        "noEmit": true,
+        "target": "ES2024",
+        "module": "ES2022",
+        "strict": true
+    },
+    "include": ["./src/"]
+}
