@@ -1,4 +1,6 @@
-export const file1 = `// Copyright (C) 2017 Ecma International.  All rights reserved.
+// @ts-nocheck
+function assert_file() {
+// Copyright (C) 2017 Ecma International.  All rights reserved.
 // This code is governed by the BSD license found in the LICENSE file.
 /*---
 description: |
@@ -104,9 +106,9 @@ assert.throws = function (expectedErrorConstructor, func, message) {
 assert._formatIdentityFreeValue = function formatIdentityFreeValue(value) {
   switch (value === null ? 'null' : typeof value) {
     case 'string':
-      return typeof JSON !== "undefined" ? JSON.stringify(value) : \`"$\{value}"\`;
+      return typeof JSON !== "undefined" ? JSON.stringify(value) : `"${value}"`;
     case 'bigint':
-      return \`$\{value}n\`;
+      return `${value}n`;
     case 'number':
       if (value === 0 && 1 / value === -Infinity) return '-0';
       // falls through
@@ -128,8 +130,12 @@ assert._toString = function (value) {
     }
     throw err;
   }
-};`;
-export const file2 = `/// Copyright (c) 2012 Ecma International.  All rights reserved.
+};
+
+}
+
+function sta() {
+// Copyright (c) 2012 Ecma International.  All rights reserved.
 // This code is governed by the BSD license found in the LICENSE file.
 /*---
 description: |
@@ -153,4 +159,71 @@ Test262Error.thrower = function (message) {
 
 function $DONOTEVALUATE() {
   throw "Test262: This statement should not be evaluated.";
-}`;
+}
+}
+
+function compareArray() {
+// Copyright (C) 2017 Ecma International.  All rights reserved.
+// This code is governed by the BSD license found in the LICENSE file.
+/*---
+description: |
+    Compare the contents of two arrays
+defines: [compareArray]
+---*/
+
+function compareArray(a, b) {
+  if (b.length !== a.length) {
+    return false;
+  }
+
+  for (var i = 0; i < a.length; i++) {
+    if (!compareArray.isSameValue(b[i], a[i])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+compareArray.isSameValue = function(a, b) {
+  if (a === 0 && b === 0) return 1 / a === 1 / b;
+  if (a !== a && b !== b) return true;
+
+  return a === b;
+};
+
+compareArray.format = function(arrayLike) {
+  return `[${[].map.call(arrayLike, String).join(', ')}]`;
+};
+
+assert.compareArray = function(actual, expected, message) {
+  message  = message === undefined ? '' : message;
+
+  if (typeof message === 'symbol') {
+    message = message.toString();
+  }
+
+  assert(actual != null, `Actual argument shouldn't be nullish. ${message}`);
+  assert(expected != null, `Expected argument shouldn't be nullish. ${message}`);
+  var format = compareArray.format;
+  var result = compareArray(actual, expected);
+
+  // The following prevents actual and expected from being iterated and evaluated
+  // more than once unless absolutely necessary.
+  if (!result) {
+    assert(false, `Actual ${format(actual)} and expected ${format(expected)} should have the same contents. ${message}`);
+  }
+};
+}
+
+function toSource(f) {
+  const str = f.toString();
+  const start = str.indexOf('{') + 2;
+  const end = str.lastIndexOf('}');
+  return str.slice(start, end);
+}
+
+export const Test262HarnessFiles = {
+  'https://github.com/tc39/test262/blob/main/harness/assert.js': toSource(assert_file),
+  'https://github.com/tc39/test262/blob/main/harness/sta.js': toSource(sta),
+  'https://github.com/tc39/test262/blob/main/harness/compareArray.js': toSource(compareArray),
+};

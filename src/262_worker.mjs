@@ -6,7 +6,7 @@ import {
   evalQ,
 } from '../lib/engine262.mjs';
 import { Inspector, createConsole } from '../lib/inspector.mjs';
-import { file1, file2 } from './harness.mjs';
+import { Test262HarnessFiles } from './harness.mjs';
 
 let abortController = new AbortController();
 class WorkerInspector extends Inspector {
@@ -41,8 +41,6 @@ function recreateAgent(features, signal) {
   setSurroundingAgent(agent);
 
   inspector.attachAgent(agent, []);
-  inspector.preference.preview = true;
-  // inspector.preference.previewDebug = true
   signal.addEventListener('abort', () => inspector.detachAgent(agent), { once: true });
 
   const realm = new ManagedRealm({});
@@ -51,14 +49,12 @@ function recreateAgent(features, signal) {
   if (features.includes('test262-harness')) {
     createTest262Intrinsics(realm, false);
     evalQ((Q, X) => {
-      const script1 = X(
-        realm.compileScript(file1, { specifier: 'https://github.com/tc39/test262/blob/main/harness/assert.js' }),
-      );
-      const script2 = X(
-        realm.compileScript(file2, { specifier: 'https://github.com/tc39/test262/blob/main/harness/sta.js' }),
-      );
-      realm.evaluateScript(script1);
-      realm.evaluateScript(script2);
+      for (const [specifier, file] of Object.entries(Test262HarnessFiles)) {
+        const script = X(
+          realm.compileScript(file, { specifier }),
+        );
+        realm.evaluateScript(script);
+      }
     });
   }
 }
