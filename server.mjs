@@ -4,6 +4,7 @@ import {
 } from 'fs';
 import { parseArgs } from 'util';
 
+process.chdir(import.meta.dirname);
 const argv = parseArgs({
   options: {
     forceRemote: {
@@ -50,6 +51,9 @@ function redirectMissingFile(
     if (canUseLocal && existsSync('./lib/engine262/lib/engine262.mjs')) {
       res.writeHead(200, { 'Content-Type': 'application/javascript; charset=UTF-8' });
       res.end('export * from "/lib/engine262/lib/engine262.mjs";');
+    } else if (canUseLocal && existsSync('../lib/engine262.mjs')) {
+      res.writeHead(200, { 'Content-Type': 'application/javascript; charset=UTF-8' });
+      res.end(readFileSync('../lib/engine262.mjs', 'utf8'));
     } else {
       logLocalBuild();
       res.writeHead(200, { 'Content-Type': 'application/javascript; charset=UTF-8' });
@@ -61,6 +65,9 @@ function redirectMissingFile(
     if (canUseLocal && existsSync('./lib/engine262/lib/engine262.js')) {
       res.writeHead(302, { Location: '/lib/engine262/lib/engine262.js' });
       res.end();
+    } else if (canUseLocal && existsSync('../lib/engine262.js')) {
+      res.writeHead(200, { 'Content-Type': 'application/javascript; charset=UTF-8' });
+      res.end(readFileSync('../lib/engine262.js', 'utf8'));
     } else {
       logLocalBuild();
       res.writeHead(200, { 'Content-Type': 'application/javascript; charset=UTF-8' });
@@ -72,6 +79,9 @@ function redirectMissingFile(
     if (canUseLocal && existsSync('./lib/engine262/lib/inspector.mjs')) {
       res.writeHead(200, { 'Content-Type': 'application/javascript; charset=UTF-8' });
       res.end('export * from "/lib/engine262/lib/inspector.mjs";');
+    } else if (canUseLocal && existsSync('../lib/inspector.mjs')) {
+      res.writeHead(200, { 'Content-Type': 'application/javascript; charset=UTF-8' });
+      res.end(readFileSync('../lib/inspector.mjs', 'utf8'));
     } else {
       logLocalBuild();
       res.writeHead(200, { 'Content-Type': 'application/javascript; charset=UTF-8' });
