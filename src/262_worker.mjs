@@ -4,6 +4,7 @@ import {
   ManagedRealm,
   createTest262Intrinsics,
   evalQ,
+  boostTest262Harness
 } from '../lib/engine262.mjs';
 import { Inspector, createConsole } from '../lib/inspector.mjs';
 import { Test262HarnessFiles } from './harness.mjs';
@@ -48,7 +49,7 @@ function recreateAgent(features, signal) {
 
   if (features.includes('test262-harness')) {
     createTest262Intrinsics(realm, false);
-    evalQ((Q, X) => {
+    evalQ((_Q, X) => {
       for (const [specifier, file] of Object.entries(Test262HarnessFiles)) {
         const script = X(
           realm.compileScript(file, { specifier }),
@@ -56,5 +57,6 @@ function recreateAgent(features, signal) {
         realm.evaluateScript(script);
       }
     });
+    boostTest262Harness(realm);
   }
 }
