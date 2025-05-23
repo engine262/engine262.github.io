@@ -4,7 +4,10 @@ import {
   ManagedRealm,
   createTest262Intrinsics,
   evalQ,
-  boostTest262Harness
+  boostTest262Harness,
+  Get,
+  CreateDataPropertyOrThrow,
+  Value,
 } from '../lib/engine262.mjs';
 import { Inspector, createConsole } from '../lib/inspector.mjs';
 import { Test262HarnessFiles } from './harness.mjs';
@@ -56,6 +59,10 @@ function recreateAgent(features, signal) {
         );
         realm.evaluateScript(script);
       }
+      realm.scope(() => {
+        const consoleTrace = X(Get(X(Get(realm.GlobalObject, Value('console'))), Value('trace')));
+        X(CreateDataPropertyOrThrow(realm.GlobalObject, Value('$DONE'), consoleTrace));
+      });
     });
     boostTest262Harness(realm);
   }
