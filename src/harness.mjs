@@ -94,7 +94,7 @@ assert.throws = function (expectedErrorConstructor, func, message) {
       } else {
         message += 'Expected a ' + expectedName + ' but got a ' + actualName;
       }
-      throw new Test262Error(message);
+      throw new Test262Error(message, { cause: thrown });
     }
     return;
   }
