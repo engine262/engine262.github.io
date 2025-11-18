@@ -8,9 +8,9 @@ import {
   Get,
   CreateDataPropertyOrThrow,
   Value,
-} from '../lib/engine262.mjs';
-import { Inspector, createConsole } from '../lib/inspector.mjs';
-import { Test262HarnessFiles } from './harness.mjs';
+} from '../../lib/engine262.mjs';
+import { Inspector, createConsole } from '../../lib/inspector.mjs';
+import { Test262HarnessFiles } from '../shared/harness.mjs';
 
 let abortController = new AbortController();
 class WorkerInspector extends Inspector {

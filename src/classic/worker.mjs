@@ -1,31 +1,29 @@
-'use strict';
-
-/* eslint-env worker */
-/* eslint-disable no-restricted-globals */
-
-importScripts('/engine262/engine262.js');
-
-const {
+import { createConsole } from '../../lib/inspector.mjs';
+import { Test262HarnessFiles } from '../shared/harness.mjs';
+import {
   Agent,
   Value,
   JSStringValue,
   ManagedRealm,
-
   CreateDataProperty,
-  OrdinaryObjectCreate,
   CreateBuiltinFunction,
-
-  evalQ,
   skipDebugger,
-  ThrowCompletion,
   AbruptCompletion,
-
   setSurroundingAgent,
   inspect,
   FEATURES,
-} = /** @type {import('../../engine262/declaration/index.d.mts')} */ (self['@engine262/engine262']);
+} from '../../lib/engine262.mjs';
 
-postMessage({ type: 'initialize', value: { FEATURES } });
+postMessage({
+  type: 'initialize',
+  value: {
+    FEATURES: [{
+      name: 'Test262 harness',
+      flag: 'test262-harness',
+      url: '#',
+    }].concat(FEATURES),
+  },
+});
 
 addEventListener('message', ({ data }) => {
   console.log('@WORKER', data); // eslint-disable-line no-console
@@ -36,7 +34,9 @@ addEventListener('message', ({ data }) => {
     const agent = new Agent({
       features: [...state.get('features')],
       onDebugger() {
-        debugger; // eslint-disable-line no-debugger
+        // Note: If you're reading this, you should try our new inspector that supports real debugger
+        // https://engine262.js.org/next.html
+        debugger;
       },
     });
     setSurroundingAgent(agent);
@@ -70,35 +70,22 @@ addEventListener('message', ({ data }) => {
       }, 1, Value('print'), []);
       skipDebugger(CreateDataProperty(realm.GlobalObject, Value('print'), print));
 
-      {
-        const console = OrdinaryObjectCreate(agent.intrinsic('%Object.prototype%'));
-        skipDebugger(CreateDataProperty(realm.GlobalObject, Value('console'), console));
-
-        [
-          'log',
-          'warn',
-          'debug',
-          'error',
-          'clear',
-        ].forEach((method) => {
-          const fn = CreateBuiltinFunction((args) => {
-            postMessage({
-              type: 'console',
-              value: {
-                method,
-                values: args.map((a, i) => {
-                  if (i === 0 && a instanceof JSStringValue) {
-                    return a.stringValue();
-                  }
-                  return inspect(a);
-                }),
-              },
-            });
-            return Value.undefined;
-          }, 1, Value(''), []);
-          skipDebugger(CreateDataProperty(console, Value(method), fn));
-        });
-      }
+      createConsole(realm, {
+        * default(method, args) {
+          postMessage({
+            type: 'console',
+            value: {
+              method,
+              values: args.map((a, i) => {
+                if (i === 0 && a instanceof JSStringValue) {
+                  return a.stringValue();
+                }
+                return inspect(a);
+              }),
+            },
+          });
+        }
+      })
 
       postMessage({
         type: 'console',
@@ -108,20 +95,17 @@ addEventListener('message', ({ data }) => {
         },
       });
 
+      if (state.get('features').has('test262-harness')) {
+        Object.entries(Test262HarnessFiles).forEach(([url, content]) => {
+          realm.evaluateScript(content, { specifier: url });
+        });
+      }
+
       let result;
       if (state.get('mode') === 'script') {
         result = realm.evaluateScript(code, { specifier: 'code.js' });
       } else {
-        result = evalQ((Q) => {
-          const module = Q(realm.createSourceTextModule('code.mjs', code));
-          Q(module.LoadRequestedModules());
-          Q(module.Link());
-          const promise = Q(skipDebugger(module.Evaluate()));
-          if (promise.PromiseState === 'rejected') {
-            return ThrowCompletion(promise.PromiseResult || Value.undefined);
-          }
-          return undefined;
-        });
+        result = realm.evaluateModule(code, 'code.mjs');
       }
       if (result instanceof AbruptCompletion) {
         postMessage({

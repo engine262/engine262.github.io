@@ -14,6 +14,7 @@ const initial = new Map([
   ['features', new Set()],
 ]);
 
+/** @type {any} */
 let state;
 
 if (query.has('gist')) {

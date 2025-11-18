@@ -1,15 +1,17 @@
+// @ts-nocheck
 import 'chrome-devtools-frontend/entrypoints/shell/shell.js';
 import * as Common from 'chrome-devtools-frontend/core/common/common.js';
 import * as i18n from 'chrome-devtools-frontend/core/i18n/i18n.js';
 import * as SDK from 'chrome-devtools-frontend/core/sdk/sdk.js';
 import * as Components from 'chrome-devtools-frontend/ui/legacy/components/utils/utils.js';
 import * as UI from 'chrome-devtools-frontend/ui/legacy/legacy.js';
+import { SettingsUI } from 'chrome-devtools-frontend/ui/legacy/components/settings_ui/settings_ui.js';
 import * as Main from 'chrome-devtools-frontend/entrypoints/main/main.js';
 import * as Root from 'chrome-devtools-frontend/core/root/root.js';
 import { InspectorFrontendHostInstance } from 'chrome-devtools-frontend/core/host/InspectorFrontendHost.js';
-import { InspectorBackend } from 'chrome-devtools-frontend/core/protocol_client/protocol_client.js';
+import { InspectorBackend, ConnectionTransport } from 'chrome-devtools-frontend/core/protocol_client/protocol_client.js';
 import lzString from 'https://cdn.jsdelivr.net/npm/lz-string@1.5.0/+esm';
-import { FEATURES } from '../lib/engine262.mjs';
+import { FEATURES } from '../../lib/engine262.mjs';
 
 // Fix crash on Firefox (non standard / unsupported api used)
 ShadowRoot.prototype.getSelection = ShadowRoot.prototype.getComponentSelection;
@@ -49,6 +51,7 @@ const L = {
     reload: 'Reload the engine262 worker',
     share: 'Share as URL',
     copyToShare: 'Copy the following URL to share',
+    selectFile: 'Select File',
   },
 };
 const LA = {
@@ -76,7 +79,7 @@ const SL = {
 const ReloadEvent = new EventTarget();
 /** @type {() => void} */
 let onWorkerBootstrap;
-class Engine262Connection extends InspectorBackend.Connection {
+class Engine262ConnectionTransport extends ConnectionTransport.ConnectionTransport {
   /** @type {Worker} */ #runner;
   /** @type {undefined | any[]} */ #holdingMessages = []
   constructor() {
@@ -103,7 +106,7 @@ class Engine262Connection extends InspectorBackend.Connection {
     this.#holdingMessages?.forEach((message) => this.#runner.postMessage(message));
     this.#holdingMessages = undefined;
   }
-  setOnMessage(/** @type {Engine262Connection['onMessage']} */ _onMessage) {
+  setOnMessage(/** @type {Engine262ConnectionTransport['onMessage']} */ _onMessage) {
     this.onMessage = _onMessage;
   }
   setOnDisconnect(/** @type {(arg0: string) => void} */ _onDisconnect) {
@@ -195,7 +198,7 @@ UI.ViewManager.registerViewExtension({
 Common.Runnable.registerEarlyInitializationRunnable(() => ({
   async run() {
     SDK.Connections.initMainConnection(async () => {
-      InspectorBackend.Connection.setFactory(() => new Engine262Connection());
+      ConnectionTransport.ConnectionTransport.setFactory(() => new Engine262ConnectionTransport());
       const target = SDK.TargetManager.TargetManager.instance().createTarget(
         'main',
         S.app(L.app.main),
@@ -273,7 +276,7 @@ function modifyUI(ConsolePanel) {
     featureSetting.addChangeListener(updateFeature);
     featureSettings.push(featureSetting);
     settingsPane.append(
-      UI.SettingsUI.createSettingCheckbox(
+      SettingsUI.createSettingCheckbox(
         S.engine262(L.engine262.featureSwitch, feature),
         featureSetting,
         feature.url,
@@ -291,7 +294,7 @@ function modifyUI(ConsolePanel) {
     test262HarnessSetting.addChangeListener(updateFeature);
     featureSettings.push(test262HarnessSetting);
     settingsPane.append(
-      UI.SettingsUI.createSettingCheckbox(
+      SettingsUI.createSettingCheckbox(
         S.engine262(L.engine262.includeTest262Env),
         test262HarnessSetting,
       ),
@@ -346,24 +349,49 @@ function modifyUI(ConsolePanel) {
   };
   onWorkerBootstrap();
 
-  // reload & share button
+  // reload, select file & share button
   {
     const toolbar = Console.element.querySelector('devtools-toolbar');
     const dom = document.createElement('div');
     dom.innerHTML = `
       <devtools-button class="toolbar-button"></devtools-button>
       <devtools-button class="toolbar-button"></devtools-button>
+      <devtools-button class="toolbar-button"></devtools-button>
     `;
     // Note: this custom element is bad: Failed to execute 'createElement' on 'Document':
     // The result must not have attributes
     // const button = document.createElement('devtools-button')
-    const [reloadButton, shareButton] = dom.querySelectorAll('devtools-button');
+    const [reloadButton, selectFileButton, shareButton] = dom.querySelectorAll('devtools-button');
+
     reloadButton.addEventListener('click', () => ReloadEvent.dispatchEvent(new Event('reload')));
     reloadButton.iconName = 'refresh';
     // @ts-expect-error
     reloadButton.variant = 'toolbar';
     reloadButton.title = S.engine262(L.engine262.reload);
     reloadButton.ariaLabel = S.engine262(L.engine262.reload);
+
+    selectFileButton.addEventListener('click', async () => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.click();
+      input.onchange = async () => {
+        const file = input.files[0];
+        if (!file) {
+          return;
+        }
+        const content = await file.text();
+        editor.dispatch({
+          changes: [{ from: 0, to: editor.state.doc.length, insert: content }],
+          selection: { anchor: content.length, head: 0 },
+        });
+      };
+    });
+    selectFileButton.iconName = 'plus';
+    // @ts-expect-error
+    selectFileButton.variant = 'toolbar';
+    selectFileButton.title = S.engine262(L.engine262.selectFile);
+    selectFileButton.ariaLabel = S.engine262(L.engine262.selectFile);
+
     shareButton.addEventListener('click', () => {
       state.code = editor.state.doc.toString();
       const url = new URL(location.href);

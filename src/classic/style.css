@@ -30,7 +30,7 @@ body {
 }
 main {
   display: flex;
-  flex-direction: column;
+  flex-direction: column-reverse;
   flex-grow: 1;
 }
 textarea {
@@ -57,7 +57,6 @@ textarea:disabled {
 
 #output {
   flex-grow: 1;
-  min-height: 200px;
   background-color: white;
   border: 1px solid black;
   font-family: monospace;
@@ -101,7 +100,7 @@ label {
   right: 0;
   width: 149px;
   height: 149px;
-  background-image: url('./github_ribbon.png');
+  background-image: url('./src/github_ribbon.png');
 }
 @media (min-width: 800px) {
   html, body {
@@ -115,5 +114,11 @@ label {
   }
   #features {
     flex-wrap: wrap;
+  }
+  #input-section, #output-section {
+    max-width: 50vw;
+  }
+  #output {
+    min-height: 200px;
   }
 }

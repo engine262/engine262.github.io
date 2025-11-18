@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+    <meta charset="utf-8" />
+    <title>engine262 playground</title>
+    <!--
+    Checkout the latest rev at https://chromium.googlesource.com/devtools/devtools-frontend/+log
+    Current commit 0117805c961fd556515972b79a7042408d6fd036 is committed on Tue Nov 11 07:54:04 2025
+    The most recent commit may not been built yet, so you may need to use a commit few days ago.
+    You can access https://chrome-devtools-frontend.appspot.com/serve_rev/@0117805c961fd556515972b79a7042408d6fd036/panels/sources/sources.js
+
+    After update, the first few access will be extremely slow. Refresh it a few times so it get cached by Google servers.
+    -->
+    <script type="importmap">
+        {
+            "imports": {
+                "chrome-devtools-frontend/": "https://chrome-devtools-frontend.appspot.com/serve_rev/@0117805c961fd556515972b79a7042408d6fd036/"
+            }
+        }
+    </script>
+    <link rel="modulepreload" href="./src/late-panels.mjs" as="script" />
+    <link rel="modulepreload" href="./src/262_worker.mjs" as="script" />
+    <meta
+        http-equiv="Content-Security-Policy"
+        content="object-src 'none'; script-src 'self' 'sha256-YCezwjqZIYZtHaYW1WJzVCeRrxO0ie1Wg6rRb3iSlno=' https://chrome-devtools-frontend.appspot.com https://cdn.jsdelivr.net/ https://engine262.js.org/"
+    />
+    <meta name="referrer" content="no-referrer" />
+    <link href="./src/devtools/style.css" rel="stylesheet" />
+    <link
+        href="https://chrome-devtools-frontend.appspot.com/serve_rev/@0117805c961fd556515972b79a7042408d6fd036/application_tokens.css"
+        rel="stylesheet"
+    />
+    <link
+        href="https://chrome-devtools-frontend.appspot.com/serve_rev/@0117805c961fd556515972b79a7042408d6fd036/design_system_tokens.css"
+        rel="stylesheet"
+    />
+    <template id="engine262-readme-template">
+        <main id="engine262-readme">
+            <div class="page-title" role="heading" aria-level="1">
+                <a href="https://github.com/engine262/engine262/" target="_blank">engine262</a>
+                <span></span>
+            </div>
+            <a href="https://github.com/engine262/engine262" target="_blank">
+                <span id="star-me">Star me on GitHub</span>
+            </a>
+            <article></article>
+        </main>
+    </template>
+
+    <body class="undocked" id="-blink-dev-tools">
+        <dialog id="loading">Loading...</dialog>
+        <div id="fork" class='card-wrap'>
+        </div>
+        <script>
+            const loading = document.querySelector('#loading');
+            try {
+                loading.showModal()
+            } catch (e) {}
+            window.addEventListener('loaded', () => {
+                try {
+                    loading.close()
+                } catch (e) {}
+            })
+            window.addEventListener('error', () => {
+                try {
+                    loading.close()
+                } catch (e) {}
+            })
+        </script>
+        <script type="module" src="./src/devtools/index.mjs"></script>
+    </body>
+</html>
