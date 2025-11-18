@@ -12,6 +12,7 @@ import {
   setSurroundingAgent,
   inspect,
   FEATURES,
+  createTest262Intrinsics,
 } from '../../lib/engine262.mjs';
 
 postMessage({
@@ -96,6 +97,7 @@ addEventListener('message', ({ data }) => {
       });
 
       if (state.get('features').has('test262-harness')) {
+        createTest262Intrinsics(realm, false);
         Object.entries(Test262HarnessFiles).forEach(([url, content]) => {
           realm.evaluateScript(content, { specifier: url });
         });
