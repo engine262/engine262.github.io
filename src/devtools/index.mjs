@@ -44,6 +44,7 @@ const L = {
     title: ': A JavaScript engine written in JavaScript for development and exploration',
     featureSwitch: 'Enable {name}',
     includeTest262Env: 'Include test262 environment',
+    includeVirtualModuleLoader: 'Include virtual module loader for the playground',
     evaluateAs: 'Evaluate as ',
     console: 'Console',
     script: 'Script',
@@ -297,6 +298,23 @@ function modifyUI(ConsolePanel) {
       SettingsUI.createSettingCheckbox(
         S.engine262(L.engine262.includeTest262Env),
         test262HarnessSetting,
+      ),
+    );
+  }
+  {
+    const debugModuleLoader = Common.Settings.Settings.instance().createSetting(
+      'engine262:virtual-module-loader',
+      true,
+    );
+    if (state.features) {
+      debugModuleLoader.set(state.features.includes('virtual-module-loader'));
+    }
+    debugModuleLoader.addChangeListener(updateFeature);
+    featureSettings.push(debugModuleLoader);
+    settingsPane.append(
+      SettingsUI.createSettingCheckbox(
+        S.engine262(L.engine262.includeVirtualModuleLoader),
+        debugModuleLoader,
       ),
     );
   }
