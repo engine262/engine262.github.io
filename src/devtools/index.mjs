@@ -15,6 +15,9 @@ import { FEATURES } from '../../lib/engine262.mjs';
 
 // Fix crash on Firefox (non standard / unsupported api used)
 ShadowRoot.prototype.getSelection = ShadowRoot.prototype.getComponentSelection;
+ShadowRoot.prototype.getBoundingClientRect = function () {
+  return this.host.getBoundingClientRect();
+};
 Element.prototype.scrollIntoViewIfNeeded = Element.prototype.scrollIntoView;
 
 // @ts-ignore
@@ -27,6 +30,9 @@ if (localStorage.getItem('console-show-settings-toolbar') === null) {
 }
 if (localStorage.getItem('experiments') === null) {
   localStorage.setItem('experiments', '{"protocol-monitor":true}');
+}
+if (localStorage.getItem('engine262:decorators') === null) {
+  localStorage.setItem('engine262:decorators', 'true');
 }
 // #endregion
 
