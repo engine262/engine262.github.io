@@ -10,7 +10,6 @@ import {
   Value,
   Realm,
   Throw,
-  Descriptor,
   CreateBuiltinFunction,
   JSStringValue,
   CreateNonEnumerableDataPropertyOrThrow,
@@ -32,6 +31,7 @@ class WorkerInspector extends Inspector {
         abortController.abort();
         abortController = new AbortController();
         recreateAgent(params.features, abortController.signal);
+        this.send({ id, result: {} });
         return;
       }
       this.onMessage(id, method, params);
