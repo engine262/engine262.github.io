@@ -15,7 +15,7 @@ module.exports = (req, res) => {
   }
 
   delete req.headers.host;
-  return fetch('https://npm.pkg.github.com/@engine262/engine262', {
+  return fetch('https://npm.pkg.github.com/@magic-works/engine262', {
     headers: { ...req.headers, authorization },
   })
     .then((r) => r.json())
