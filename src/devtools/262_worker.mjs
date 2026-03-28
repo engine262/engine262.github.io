@@ -58,11 +58,16 @@ function recreateAgent(features, signal) {
   signal.addEventListener('abort', () => inspector.detachAgent(agent), { once: true });
 
   if (features.includes('virtual-module-loader')) {
-    const virtualModuleCache = new Map();
+    const virtualModuleSourceCache = new Map();
+    const moduleCache = new Map();
     agent.hostDefinedOptions.loadImportedModule = (referrer, specifier, attributes, hostDefined, finish) => {
       const importerRealm = referrer instanceof Realm ? referrer : referrer.Realm;
-      if (importerRealm instanceof ManagedRealm && virtualModuleCache.has(specifier)) {
-        finish(importerRealm.compileModule(virtualModuleCache.get(specifier), { specifier }));
+      if (importerRealm instanceof ManagedRealm && virtualModuleSourceCache.has(specifier)) {
+        if (!moduleCache.has(specifier)) {
+          const module = importerRealm.compileModule(virtualModuleSourceCache.get(specifier), { specifier });
+          moduleCache.set(specifier, module);
+        }
+        finish(moduleCache.get(specifier));
         return;
       }
       finish(Throw.SyntaxError('Could not resolve module $1', specifier));
@@ -78,10 +83,10 @@ function recreateAgent(features, signal) {
         if (surroundingAgent.debugger_cannotPreview) {
           return surroundingAgent.debugger_cannotPreview;
         }
-        virtualModuleCache.set(specifier.stringValue(), source.stringValue());
+        virtualModuleSourceCache.set(specifier.stringValue(), source.stringValue());
         return Value.undefined;
       }, 2, 'defineModule', ['SourceText']);
-      /** @type {import('../../lib/engine262.mjs').ECMAScriptFunctionObject} */ (/** @type {any} */ (defineModule)).SourceText = 'function defineModule(specifier, source) { [native code] }\n/** @example defineModule("lib", "export default 1;"); import("lib") */';
+      /** @type {import('../../lib/engine262.mjs').ECMAScriptFunctionObject} */ (/** @type {any} */ (defineModule)).SourceText = 'function defineModule(specifier, source) { [native code] }';
       CreateNonEnumerableDataPropertyOrThrow(realm.GlobalObject, Value('defineModule'), defineModule);
     });
   }
