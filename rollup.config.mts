@@ -104,7 +104,12 @@ export default defineConfig({
                     ].join(`\n`)
                 }
                 if (id.endsWith('.css')) {
-                    return [`export default ${JSON.stringify(await readFile(id, 'utf-8'))}`].join('\n')
+                    let file = `/** ${relative(libRoot, id)} */\n` + await readFile(id, 'utf-8')
+                    if (id.endsWith('dataGrid.css')) {
+                        // fix a CSS bug in protocol monitor on Firefox
+                        file += `tbody > tr[style="height: 0px;"] { display: none !important; }`
+                    }
+                    return [`export default ${JSON.stringify(file)}`].join('\n')
                 }
             },
             async resolveId(imported, importer) {

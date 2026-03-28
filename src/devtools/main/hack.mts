@@ -72,6 +72,14 @@ export function fixCSSHostContext(
 
 export function fixChromeDevtoolsFrontend() {
     InspectorFrontendHostInstance.reattach = (f) => f()
+    InspectorFrontendHostInstance.getHostConfig = (f) => {
+        f({
+            devToolsVeLogging: { enabled: true },
+            devToolsFlexibleLayout: { verticalDrawerEnabled: true },
+            devToolsProtocolMonitor: { enabled: true },
+            devToolsGlobalAiButton: { enabled: false },
+        });
+    }
     // Remove not implemented panels
     UI.ViewManager.maybeRemoveViewExtension('heap-profiler')
 }

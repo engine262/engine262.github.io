@@ -1,5 +1,7 @@
-// @ts-check
-import 'chrome-devtools-frontend/front_end/entrypoints/shell/shell.ts';
+import 'chrome-devtools-frontend/front_end/panels/sources/sources-meta.ts';
+import 'chrome-devtools-frontend/front_end/panels/settings/settings-meta.ts';
+import 'chrome-devtools-frontend/front_end/panels/protocol_monitor/protocol_monitor-meta.ts';
+import 'chrome-devtools-frontend/front_end/panels/linear_memory_inspector/linear_memory_inspector-meta.ts';
 import * as UI from 'chrome-devtools-frontend/front_end/ui/legacy/legacy.ts';
 import { SettingsUI } from 'chrome-devtools-frontend/front_end/ui/legacy/components/settings_ui/settings_ui.ts';
 import { L, S, SL } from './i18n.mts';
@@ -10,17 +12,16 @@ import { search, state } from './state.mts';
 import { featureSettings } from './features.mts';
 import { Engine262ConnectionTransport } from './connection.mts';
 import { Variant } from 'chrome-devtools-frontend/front_end/ui/components/buttons/Button.ts';
+import { ViewLocationValues, ViewPersistence } from 'chrome-devtools-frontend/front_end/ui/legacy/ViewRegistration.ts';
 
 export function registerFilesView() {
   UI.ViewManager.registerViewExtension({
-    // @ts-ignore
-    location: 'navigator-view',
+    location: ViewLocationValues.NAVIGATOR_VIEW,
     id: 'navigator-network',
     title: SL.app(L.app.networkTitle),
     commandPrompt: SL.app(L.app.showNode),
     order: 2,
-    // @ts-ignore
-    persistence: 'permanent',
+    persistence: ViewPersistence.PERMANENT,
     async loadView() {
       const Sources = await import('chrome-devtools-frontend/front_end/panels/sources/sources.ts');
       fixCSSHostContext(Sources);
@@ -31,14 +32,12 @@ export function registerFilesView() {
 
 export function registerEngine262View() {
   UI.ViewManager.registerViewExtension({
-    // @ts-ignore
-    location: 'panel',
+    location: ViewLocationValues.PANEL,
     id: 'engine262',
     title: SL.engine262(L.engine262.panelTitle),
     commandPrompt: SL.engine262(L.engine262.showPanel),
     order: Infinity,
-    // @ts-ignore
-    persistence: 'permanent',
+    persistence: ViewPersistence.PERMANENT,
     async loadView() {
       return class Engine262Document extends UI.Widget.Widget {
         static instance: Engine262Document
@@ -78,15 +77,6 @@ export function registerEngine262View() {
       }.new();
     },
   });
-}
-
-export function loadProtocolMonitorView() {
-  return {
-    async run() {
-      Root.Runtime.experiments.setEnabled(Root.ExperimentNames.ExperimentName.PROTOCOL_MONITOR, true);
-      import('../late-panels.mts');
-    },
-  }
 }
 
 export function modifyConsoleView() {

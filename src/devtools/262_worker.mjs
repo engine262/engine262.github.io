@@ -50,8 +50,6 @@ postMessage('hello');
 function recreateAgent(features, signal) {
   const agent = new Agent({ features });
   setSurroundingAgent(agent);
-
-
   inspector.attachAgent(agent, []);
   signal.addEventListener('abort', () => inspector.detachAgent(agent), { once: true });
 
@@ -66,22 +64,23 @@ function recreateAgent(features, signal) {
         finish(importerRealm.compileModule(virtualModuleCache.get(specifier), { specifier }));
         return;
       }
-      finish(Throw('SyntaxError', 'CouldNotResolveModule', specifier, 'repl'));
+      finish(Throw.SyntaxError('Could not resolve module $1', specifier));
     }
     realm.scope(() => {
-      const defineModule = CreateBuiltinFunction.from(function* defineModule(specifier, source) {
+      const defineModule = CreateBuiltinFunction(function* defineModule([specifier, source]) {
         if (!(specifier instanceof JSStringValue)) {
-          return Throw('TypeError', 'NotAString', specifier);
+          return Throw.TypeError('specifier is not a string');
         }
         if (!(source instanceof JSStringValue)) {
-          return Throw('TypeError', 'NotAString', source);
+          return Throw.TypeError('source is not a string');
         }
         if (surroundingAgent.debugger_cannotPreview) {
           return surroundingAgent.debugger_cannotPreview;
         }
         virtualModuleCache.set(specifier.stringValue(), source.stringValue());
         return Value.undefined;
-      })
+      }, 2, 'defineModule', ['SourceText']);
+      /** @type {import('../../lib/engine262.mjs').ECMAScriptFunctionObject} */ (/** @type {any} */ (defineModule)).SourceText = 'function defineModule(specifier, source) { [native code] }\n/** @example defineModule("lib", "export default 1;"); import("lib") */';
       CreateNonEnumerableDataPropertyOrThrow(realm.GlobalObject, Value('defineModule'), defineModule);
     });
   }
