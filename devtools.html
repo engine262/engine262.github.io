@@ -2,22 +2,6 @@
 <html lang="en">
     <meta charset="utf-8" />
     <title>engine262 playground</title>
-    <!--
-    Checkout the latest rev at https://chromium.googlesource.com/devtools/devtools-frontend/+log
-    Current commit 0117805c961fd556515972b79a7042408d6fd036 is committed on Tue Nov 11 07:54:04 2025
-    The most recent commit may not been built yet, so you may need to use a commit few days ago.
-    You can access https://chrome-devtools-frontend.appspot.com/serve_rev/@0117805c961fd556515972b79a7042408d6fd036/panels/sources/sources.js
-
-    After update, the first few access will be extremely slow. Refresh it a few times so it get cached by Google servers.
-    -->
-    <script type="importmap">
-        {
-            "imports": {
-                "chrome-devtools-frontend/": "https://chrome-devtools-frontend.appspot.com/serve_rev/@0117805c961fd556515972b79a7042408d6fd036/"
-            }
-        }
-    </script>
-    <link rel="modulepreload" href="./src/devtools/late-panels.mjs" as="script" />
     <link rel="modulepreload" href="./src/devtools/262_worker.mjs" as="script" />
     <meta
         http-equiv="Content-Security-Policy"
@@ -66,6 +50,6 @@
                 } catch (e) {}
             })
         </script>
-        <script type="module" src="./src/devtools/index.mjs"></script>
+        <script type="module" src="./lib/devtools/index.js"></script>
     </body>
 </html>

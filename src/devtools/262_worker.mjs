@@ -6,7 +6,7 @@ import {
   evalQ,
   boostTest262Harness,
   Get,
-  CreateDataPropertyOrThrow,
+  Set,
   Value,
   Realm,
   Throw,
@@ -14,9 +14,9 @@ import {
   JSStringValue,
   CreateNonEnumerableDataPropertyOrThrow,
   surroundingAgent,
+  importBundledTest262Harness,
 } from '../../lib/engine262.mjs';
 import { Inspector, createConsole } from '../../lib/inspector.mjs';
-import { Test262HarnessFiles } from '../shared/harness.mjs';
 
 let abortController = new AbortController();
 class WorkerInspector extends Inspector {
@@ -88,16 +88,11 @@ function recreateAgent(features, signal) {
 
   if (features.includes('test262-harness')) {
     createTest262Intrinsics(realm, false);
+    importBundledTest262Harness(realm);
     evalQ((_Q, X) => {
-      for (const [specifier, file] of Object.entries(Test262HarnessFiles)) {
-        const script = X(
-          realm.compileScript(file, { specifier }),
-        );
-        realm.evaluateScript(script);
-      }
       realm.scope(() => {
         const consoleTrace = X(Get(X(Get(realm.GlobalObject, Value('console'))), Value('trace')));
-        X(CreateDataPropertyOrThrow(realm.GlobalObject, Value('$DONE'), consoleTrace));
+        X(Set(realm.GlobalObject, Value('__consolePrintHandle__'), consoleTrace, Value.true));
       });
     });
     boostTest262Harness(realm);

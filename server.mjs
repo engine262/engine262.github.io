@@ -26,9 +26,6 @@ function logLocalBuild() {
     engine262.js.org
 
 Local development requires:
-  - lib/chrome-devtools-frontend
-    - built from chrome-devtools-frontend (https://www.npmjs.com/package/chrome-devtools-frontend)
-    - or download a pre-built version (by third-party) (https://www.npmjs.com/package/chrome-devtools-frontend-build)
   - lib/engine262
     - symbolic link to your engine262 repo (e.g. ../engine262)
     - run \`npm run watch\` in the engine262 repo`);
@@ -38,15 +35,6 @@ function redirectMissingFile(
   /** @type {import('http').ServerResponse} */ res,
   /** @type {(err?: any) => void} */ next,
 ) {
-  if ((req.url === '/next.html') && canUseLocal) {
-    if (existsSync('./lib/chrome-devtools-frontend')) {
-      const file = readFileSync('./next.html', 'utf8');
-      res.writeHead(200, { 'Content-Type': 'text/html' });
-      res.end(file.replace(/https:\/\/chrome-devtools-frontend.appspot.com\/serve_rev\/@[0-9a-f]+/, '/lib/chrome-devtools-frontend'));
-      return;
-    }
-    logLocalBuild();
-  }
   if (req.url === '/engine262/engine262.mjs') {
     if (canUseLocal && existsSync('./lib/engine262/lib/engine262.mjs')) {
       res.writeHead(200, { 'Content-Type': 'application/javascript; charset=UTF-8' });

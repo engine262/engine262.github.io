@@ -1,5 +1,4 @@
 import { createConsole } from '../../lib/inspector.mjs';
-import { Test262HarnessFiles } from '../shared/harness.mjs';
 import {
   Agent,
   Value,
@@ -13,6 +12,8 @@ import {
   inspect,
   FEATURES,
   createTest262Intrinsics,
+  importBundledTest262Harness,
+  boostTest262Harness,
 } from '../../lib/engine262.mjs';
 
 postMessage({
@@ -98,9 +99,8 @@ addEventListener('message', ({ data }) => {
 
       if (state.get('features').has('test262-harness')) {
         createTest262Intrinsics(realm, false);
-        Object.entries(Test262HarnessFiles).forEach(([url, content]) => {
-          realm.evaluateScript(content, { specifier: url });
-        });
+        importBundledTest262Harness(realm);
+        boostTest262Harness(realm);
       }
 
       let result;

@@ -100,7 +100,7 @@ label {
   right: 0;
   width: 149px;
   height: 149px;
-  background-image: url('./src/github_ribbon.png');
+  background-image: url('../github_ribbon.png');
 }
 @media (min-width: 800px) {
   html, body {

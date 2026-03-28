@@ -1,18 +1,28 @@
 {
   "name": "server",
   "scripts": {
-    "start": "node server.mjs -c-1"
+    "start": "node server.mjs -c-1",
+    "watch": "rollup -c ./rollup.config.mts --watch",
+    "build": "rollup -c ./rollup.config.mts"
   },
   "dependencies": {
-    "@types/http-server": "^0.12.4",
+    "chrome-devtools-frontend": "^1.0.1605390",
+    "lz-string": "^1.5.0",
+    "marked": "^17.0.5",
     "node-fetch": "^2.6.0"
   },
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^29.0.2",
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "@swc/core": "^1.15.18",
+    "@types/http-server": "^0.12.4",
     "@types/lz-string": "^1.3.34",
     "babel-eslint": "^10.0.3",
     "eslint": "^6.1.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-import": "^2.18.2",
-    "http-server": "^14.1.1"
+    "http-server": "^14.1.1",
+    "rollup": "^4.59.0",
+    "rollup-plugin-swc3": "^0.12.1"
   }
 }

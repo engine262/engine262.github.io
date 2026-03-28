@@ -1,6 +1,7 @@
 interface ShadowRoot {
     getSelection: any
     getComponentSelection: any
+    getBoundingClientRect: any
 }
 interface Element {
     scrollIntoViewIfNeeded: any
