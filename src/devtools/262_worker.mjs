@@ -50,11 +50,12 @@ postMessage('hello');
 function recreateAgent(features, signal) {
   const agent = new Agent({ features });
   setSurroundingAgent(agent);
-  inspector.attachAgent(agent, []);
-  signal.addEventListener('abort', () => inspector.detachAgent(agent), { once: true });
 
   const realm = new ManagedRealm({ name: 'playground repl' });
   createConsole(realm, {});
+
+  inspector.attachAgent(agent, [realm]);
+  signal.addEventListener('abort', () => inspector.detachAgent(agent), { once: true });
 
   if (features.includes('virtual-module-loader')) {
     const virtualModuleCache = new Map();

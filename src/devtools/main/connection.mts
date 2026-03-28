@@ -16,21 +16,12 @@ export class Engine262ConnectionTransport extends ConnectionTransport.Connection
   constructor() {
     super();
     instance = this;
-    this.#runner = this.#setup();
-    ReloadEvent.addEventListener('reload', () => {
-      this.#runner.terminate();
-      this.#setup();
-      this.onMessage?.({ method: 'Runtime.executionContextsCleared', params: null });
-    });
-  }
-  #setup() {
     this.#holdingMessages = [];
     this.#runner = new Worker(new URL('/src/devtools/262_worker.mjs', import.meta.url), { type: 'module' });
     this.#runner.onerror = console.error;
     this.#runner.onmessage = this.#onHello;
     WorkerBootstrapEvent.dispatchEvent(new Event('bootstrap'));
     // the vm will be created & reported by a engine262_setFeatures call, which is triggered by the bootstrap event.
-    return this.#runner;
   }
   #onHello = () => {
     this.#runner.onmessage = (e) => {
@@ -42,8 +33,9 @@ export class Engine262ConnectionTransport extends ConnectionTransport.Connection
   setOnMessage(_onMessage: ConnectionTransport.ConnectionTransport['onMessage']) {
     this.onMessage = _onMessage;
   }
+  private onDisconnect?: (arg0: string) => void;
   setOnDisconnect(_onDisconnect: (arg0: string) => void) {
-    // this.onDisconnect = _onDisconnect;
+    this.onDisconnect = _onDisconnect;
   }
   sendRawMessage(message: string) {
     if (this.#holdingMessages) {
@@ -53,7 +45,8 @@ export class Engine262ConnectionTransport extends ConnectionTransport.Connection
     this.#runner.postMessage(message);
   }
   async disconnect() {
-    // TODO
+    this.#runner.terminate();
+    this.onDisconnect?.('ConnectionTransport.disconnect()');
   }
 }
 
@@ -62,13 +55,19 @@ export function startLanguageVM() {
     async run() {
       SDK.Connections.initMainConnection(async () => {
         ConnectionTransport.ConnectionTransport.setFactory(() => new Engine262ConnectionTransport());
-        const target = SDK.TargetManager.TargetManager.instance().createTarget(
-          'main',
-          S.app(L.app.main),
-          SDK.Target.Type.NODE,
-          null,
-        );
-        target.runtimeAgent().invoke_runIfWaitingForDebugger();
+        const targetManager = SDK.TargetManager.TargetManager.instance();
+
+        let target: SDK.Target.Target;
+        function init() {
+          target = targetManager.createTarget('main', S.app(L.app.main), SDK.Target.Type.NODE, null);
+          target.runtimeAgent().invoke_runIfWaitingForDebugger();
+        }
+
+        init();
+        ReloadEvent.addEventListener('reload', () => {
+          target.dispose('reload');
+          init();
+        });
       }, Components.TargetDetachedDialog.TargetDetachedDialog.connectionLost);
     },
   }
