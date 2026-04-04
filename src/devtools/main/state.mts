@@ -2,6 +2,7 @@ import * as lzString from 'lz-string';
 
 export function applyDevtoolsPreference() {
   localStorage.setItem('disable-self-xss-warning', 'true');
+  localStorage.setItem('custom-formatters', 'true');
   if (localStorage.getItem('console-show-settings-toolbar') === null) {
     localStorage.setItem('console-show-settings-toolbar', 'true');
   }
