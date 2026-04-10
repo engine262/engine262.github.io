@@ -98,7 +98,7 @@ addEventListener('message', ({ data }) => {
       });
 
       if (state.get('features').has('test262-harness')) {
-        createTest262Intrinsics(realm, false);
+        createTest262Intrinsics(realm, false, console.log);
         importBundledTest262Harness(realm);
         boostTest262Harness(realm);
       }

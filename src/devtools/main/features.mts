@@ -1,13 +1,13 @@
 // @ts-check
 import 'chrome-devtools-frontend/front_end/entrypoints/shell/shell.ts';
 import * as Common from 'chrome-devtools-frontend/front_end/core/common/common.ts';
-import { FEATURES } from '../../../lib/engine262.mjs';
+import { Engine262Feature, FEATURES } from '../../../lib/engine262.mjs';
 import { state } from './state.mts';
 import { L } from './i18n.mts';
 import { WorkerBootstrapEvent } from './helpers.mts';
 import { Engine262ConnectionTransport } from './connection.mts';
 
-export const featureSettings = new Map<{ name: string; flag: string; url?: string; }, Common.Settings.Setting<boolean>>();
+export const featureSettings = new Map<Engine262Feature, Common.Settings.Setting<boolean>>();
 
 export function initFeatureSettings() {
   return {
@@ -15,10 +15,10 @@ export function initFeatureSettings() {
       WorkerBootstrapEvent.addEventListener('bootstrap', syncFeatureToVM);
       for (const feature of [
         ...FEATURES,
-        { flag: 'test262-harness', name: L.engine262.includeTest262Env },
-        { flag: 'virtual-module-loader', name: L.engine262.includeVirtualModuleLoader }
+        { flag: 'test262-harness', name: L.engine262.includeTest262Env, url: '', enableInPlayground: true } satisfies Engine262Feature,
+        { flag: 'virtual-module-loader', name: L.engine262.includeVirtualModuleLoader, url: '', enableInPlayground: false } satisfies Engine262Feature,
       ]) {
-        const featureSetting = Common.Settings.Settings.instance().createSetting(`engine262:${feature.flag}`, false);
+        const featureSetting = Common.Settings.Settings.instance().createSetting(`engine262:${feature.flag}`, feature.enableInPlayground);
         if (state.features) {
           featureSetting.set(state.features.includes(feature.flag));
         }

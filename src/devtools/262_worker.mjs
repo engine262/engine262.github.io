@@ -92,7 +92,7 @@ function recreateAgent(features, signal) {
   }
 
   if (features.includes('test262-harness')) {
-    createTest262Intrinsics(realm, false);
+    createTest262Intrinsics(realm, false, console.log);
     importBundledTest262Harness(realm);
     evalQ((_Q, X) => {
       realm.scope(() => {

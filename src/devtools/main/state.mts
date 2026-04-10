@@ -9,9 +9,6 @@ export function applyDevtoolsPreference() {
   if (localStorage.getItem('experiments') === null) {
     localStorage.setItem('experiments', '{"protocol-monitor":true}');
   }
-  if (localStorage.getItem('engine262:decorators') === null) {
-    localStorage.setItem('engine262:decorators', 'true');
-  }
 }
 
 // playground sharable state
