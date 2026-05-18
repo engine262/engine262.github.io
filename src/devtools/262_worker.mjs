@@ -1,3 +1,4 @@
+// @ts-check
 import {
   setSurroundingAgent,
   Agent,
@@ -15,6 +16,10 @@ import {
   CreateNonEnumerableDataPropertyOrThrow,
   surroundingAgent,
   importBundledTest262Harness,
+  composeModuleLoaders,
+  createBuiltinModuleLoader,
+  ModuleCache,
+  ThrowCompletion,
 } from '../../lib/engine262.mjs';
 import { Inspector, createConsole } from '../../lib/inspector.mjs';
 
@@ -51,7 +56,7 @@ function recreateAgent(features, signal) {
   const agent = new Agent({ features });
   setSurroundingAgent(agent);
 
-  const realm = new ManagedRealm({ name: 'playground repl' });
+  const realm = new ManagedRealm({ name: 'playground repl', resolverCache: new ModuleCache() });
   createConsole(realm, {});
 
   inspector.attachAgent(agent, [realm]);
@@ -59,19 +64,18 @@ function recreateAgent(features, signal) {
 
   if (features.includes('virtual-module-loader')) {
     const virtualModuleSourceCache = new Map();
-    const moduleCache = new Map();
-    agent.hostDefinedOptions.loadImportedModule = (referrer, specifier, attributes, hostDefined, finish) => {
-      const importerRealm = referrer instanceof Realm ? referrer : referrer.Realm;
-      if (importerRealm instanceof ManagedRealm && virtualModuleSourceCache.has(specifier)) {
-        if (!moduleCache.has(specifier)) {
-          const module = importerRealm.compileModule(virtualModuleSourceCache.get(specifier), { specifier });
-          moduleCache.set(specifier, module);
+    const builtinLoader = createBuiltinModuleLoader({
+      loadBuiltinModule: (moduleRequest, realm, callback) => {
+        if (virtualModuleSourceCache.has(moduleRequest.Specifier)) {
+          const source = virtualModuleSourceCache.get(moduleRequest.Specifier);
+          callback(source);
+          return;
         }
-        finish(moduleCache.get(specifier));
-        return;
+        callback(ThrowCompletion(Value(`No virtual module found for specifier ${moduleRequest.Specifier}`)));
       }
-      finish(Throw.SyntaxError('Could not resolve module $1', specifier));
-    }
+    });
+    agent.hostDefinedOptions.hostHooks ??= {};
+    agent.hostDefinedOptions.hostHooks.HostLoadImportedModule = composeModuleLoaders([builtinLoader])
     realm.scope(() => {
       const defineModule = CreateBuiltinFunction(function* defineModule([specifier, source]) {
         if (!(specifier instanceof JSStringValue)) {
