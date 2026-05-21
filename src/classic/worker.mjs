@@ -42,7 +42,9 @@ addEventListener('message', ({ data }) => {
         // Note: If you're reading this, you should try our new inspector that supports real debugger
         // https://engine262.js.org/next.html
         debugger;
-        agent.resumeEvaluate({});
+        setTimeout(() => {
+          agent.resumeEvaluate({});
+        }, 100);
       },
       hostHooks: {
         HostPromiseRejectionTrackers: new Set([
@@ -94,49 +96,49 @@ addEventListener('message', ({ data }) => {
           });
         }
       })
-
-      postMessage({
-        type: 'console',
-        value: {
-          method: 'clear',
-          values: [],
-        },
-      });
-
-      if (state.get('features').has('test262-harness')) {
-        createTest262Intrinsics(realm, false, console.log);
-        importBundledTest262Harness(realm);
-        boostTest262Harness(realm);
-      }
-
-      let result;
-      function handleResult(/** @type {import('../../lib/engine262.mjs').ValueCompletion} */ completion) {
-        result = completion;
-        if (result instanceof AbruptCompletion) {
-          postMessage({
-            type: 'console',
-            value: {
-              method: 'error',
-              values: [inspect(result)],
-            },
-          });
-        }
-
-        for (const promise of promises) {
-          postMessage({
-            type: 'unhandledRejection',
-            // eslint-disable-next-line no-use-before-define
-            value: inspect(promise.PromiseResult),
-          });
-        }
-      }
-      if (state.get('mode') === 'script') {
-        result = realm.evaluateScript(code, { specifier: 'code.js' }, handleResult);
-      } else {
-        result = realm.evaluateModule(code, 'code.mjs', handleResult);
-      }
-      if (!result) agent.resumeEvaluate({});
-      runJobQueue();
     });
+
+    postMessage({
+      type: 'console',
+      value: {
+        method: 'clear',
+        values: [],
+      },
+    });
+
+    if (state.get('features').has('test262-harness')) {
+      createTest262Intrinsics(realm, false, console.log);
+      importBundledTest262Harness(realm);
+      boostTest262Harness(realm);
+    }
+
+    let result;
+    function handleResult(/** @type {import('../../lib/engine262.mjs').ValueCompletion} */ completion) {
+      result = completion;
+      if (result instanceof AbruptCompletion) {
+        postMessage({
+          type: 'console',
+          value: {
+            method: 'error',
+            values: [inspect(result)],
+          },
+        });
+      }
+
+      for (const promise of promises) {
+        postMessage({
+          type: 'unhandledRejection',
+          // eslint-disable-next-line no-use-before-define
+          value: inspect(promise.PromiseResult),
+        });
+      }
+    }
+    if (state.get('mode') === 'script') {
+      result = realm.evaluateScript(code, { specifier: 'code.js' }, handleResult);
+    } else {
+      result = realm.evaluateModule(code, 'code.mjs', handleResult);
+    }
+    if (!result) agent.resumeEvaluate({});
+    runJobQueue();
   }
 });
