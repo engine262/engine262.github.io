@@ -1,3 +1,4 @@
+// @ts-check
 import { createConsole } from '../../lib/inspector.mjs';
 import {
   Agent,
@@ -14,6 +15,7 @@ import {
   createTest262Intrinsics,
   importBundledTest262Harness,
   boostTest262Harness,
+  runJobQueue,
 } from '../../lib/engine262.mjs';
 
 postMessage({
@@ -33,31 +35,35 @@ addEventListener('message', ({ data }) => {
   if (data.type === 'evaluate') {
     const { state, code } = data.value;
 
+    const promises = new Set();
     const agent = new Agent({
       features: [...state.get('features')],
       onDebugger() {
         // Note: If you're reading this, you should try our new inspector that supports real debugger
         // https://engine262.js.org/next.html
         debugger;
+        agent.resumeEvaluate({});
       },
+      hostHooks: {
+        HostPromiseRejectionTrackers: new Set([
+          (promise, operation) => {
+            switch (operation) {
+              case 'reject':
+                promises.add(promise);
+                break;
+              case 'handle':
+                promises.delete(promise);
+                break;
+              default:
+                break;
+            }
+          },
+        ]),
+      }
     });
     setSurroundingAgent(agent);
 
-    const promises = new Set();
-    const realm = new ManagedRealm({
-      promiseRejectionTracker(promise, operation) {
-        switch (operation) {
-          case 'reject':
-            promises.add(promise);
-            break;
-          case 'handle':
-            promises.delete(promise);
-            break;
-          default:
-            break;
-        }
-      },
-    });
+    const realm = new ManagedRealm({});
 
     realm.scope(() => {
       const print = CreateBuiltinFunction((args) => {
@@ -104,28 +110,33 @@ addEventListener('message', ({ data }) => {
       }
 
       let result;
-      if (state.get('mode') === 'script') {
-        result = realm.evaluateScript(code, { specifier: 'code.js' });
-      } else {
-        result = realm.evaluateModule(code, 'code.mjs');
-      }
-      if (result instanceof AbruptCompletion) {
-        postMessage({
-          type: 'console',
-          value: {
-            method: 'error',
-            values: [inspect(result)],
-          },
-        });
-      }
+      function handleResult(/** @type {import('../../lib/engine262.mjs').ValueCompletion} */ completion) {
+        result = completion;
+        if (result instanceof AbruptCompletion) {
+          postMessage({
+            type: 'console',
+            value: {
+              method: 'error',
+              values: [inspect(result)],
+            },
+          });
+        }
 
-      for (const promise of promises) {
-        postMessage({
-          type: 'unhandledRejection',
-          // eslint-disable-next-line no-use-before-define
-          value: inspect(promise.PromiseResult),
-        });
+        for (const promise of promises) {
+          postMessage({
+            type: 'unhandledRejection',
+            // eslint-disable-next-line no-use-before-define
+            value: inspect(promise.PromiseResult),
+          });
+        }
       }
+      if (state.get('mode') === 'script') {
+        result = realm.evaluateScript(code, { specifier: 'code.js' }, handleResult);
+      } else {
+        result = realm.evaluateModule(code, 'code.mjs', handleResult);
+      }
+      if (!result) agent.resumeEvaluate({});
+      runJobQueue();
     });
   }
 });
