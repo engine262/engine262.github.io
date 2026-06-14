@@ -4,12 +4,11 @@ import {
   Agent,
   ManagedRealm,
   createTest262Intrinsics,
-  evalQ,
+  X,
   boostTest262Harness,
   Get,
   Set,
   Value,
-  Realm,
   Throw,
   CreateBuiltinFunction,
   JSStringValue,
@@ -76,34 +75,32 @@ function recreateAgent(features, signal) {
     });
     agent.hostDefinedOptions.hostHooks ??= {};
     agent.hostDefinedOptions.hostHooks.HostLoadImportedModule = composeModuleLoaders([builtinLoader])
-    realm.scope(() => {
-      const defineModule = CreateBuiltinFunction(function* defineModule([specifier, source]) {
-        if (!(specifier instanceof JSStringValue)) {
-          return Throw.TypeError('specifier is not a string');
-        }
-        if (!(source instanceof JSStringValue)) {
-          return Throw.TypeError('source is not a string');
-        }
-        if (surroundingAgent.debugger_cannotPreview) {
-          return surroundingAgent.debugger_cannotPreview;
-        }
-        virtualModuleSourceCache.set(specifier.stringValue(), source.stringValue());
-        return Value.undefined;
-      }, 2, 'defineModule', ['SourceText']);
-      /** @type {import('../../lib/engine262.mjs').ECMAScriptFunctionObject} */ (/** @type {any} */ (defineModule)).SourceText = 'function defineModule(specifier, source) { [native code] }';
-      CreateNonEnumerableDataPropertyOrThrow(realm.GlobalObject, Value('defineModule'), defineModule);
-    });
+    const pop = realm.pushTopContext();
+    const defineModule = CreateBuiltinFunction(function* defineModule([specifier, source]) {
+      if (!(specifier instanceof JSStringValue)) {
+        return Throw.TypeError('specifier is not a string');
+      }
+      if (!(source instanceof JSStringValue)) {
+        return Throw.TypeError('source is not a string');
+      }
+      if (surroundingAgent.debugger_cannotPreview) {
+        return surroundingAgent.debugger_cannotPreview;
+      }
+      virtualModuleSourceCache.set(specifier.stringValue(), source.stringValue());
+      return Value.undefined;
+    }, 2, 'defineModule', ['SourceText']);
+    /** @type {import('../../lib/engine262.mjs').ECMAScriptFunctionObject} */ (/** @type {any} */ (defineModule)).SourceText = 'function defineModule(specifier, source) { [native code] }';
+    CreateNonEnumerableDataPropertyOrThrow(realm.GlobalObject, Value('defineModule'), defineModule);
+    pop?.();
   }
 
   if (features.includes('test262-harness')) {
     createTest262Intrinsics(realm, false, console.log);
     importBundledTest262Harness(realm);
-    evalQ((_Q, X) => {
-      realm.scope(() => {
-        const consoleTrace = X(Get(X(Get(realm.GlobalObject, Value('console'))), Value('trace')));
-        X(Set(realm.GlobalObject, Value('__consolePrintHandle__'), consoleTrace, Value.true));
-      });
-    });
+    const pop = realm.pushTopContext();
+    const consoleTrace = X(Get(X(Get(realm.GlobalObject, Value('console'))), Value('trace')));
+    X(Set(realm.GlobalObject, Value('__consolePrintHandle__'), consoleTrace, Value.true));
+    pop?.();
     boostTest262Harness(realm);
   }
 }

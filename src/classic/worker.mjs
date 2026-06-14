@@ -15,7 +15,6 @@ import {
   createTest262Intrinsics,
   importBundledTest262Harness,
   boostTest262Harness,
-  runJobQueue,
 } from '../../lib/engine262.mjs';
 
 postMessage({
@@ -67,36 +66,36 @@ addEventListener('message', ({ data }) => {
 
     const realm = new ManagedRealm({});
 
-    realm.scope(() => {
-      const print = CreateBuiltinFunction((args) => {
+    const pop = realm.pushTopContext();
+    const print = CreateBuiltinFunction((args) => {
+      postMessage({
+        type: 'console',
+        value: {
+          method: 'log',
+          values: args.map((a) => inspect(a)),
+        },
+      });
+      return Value.undefined;
+    }, 1, Value('print'), []);
+    skipDebugger(CreateDataProperty(realm.GlobalObject, Value('print'), print));
+
+    createConsole(realm, {
+      * default(method, args) {
         postMessage({
           type: 'console',
           value: {
-            method: 'log',
-            values: args.map((a) => inspect(a)),
+            method,
+            values: args.map((a, i) => {
+              if (i === 0 && a instanceof JSStringValue) {
+                return a.stringValue();
+              }
+              return inspect(a);
+            }),
           },
         });
-        return Value.undefined;
-      }, 1, Value('print'), []);
-      skipDebugger(CreateDataProperty(realm.GlobalObject, Value('print'), print));
-
-      createConsole(realm, {
-        * default(method, args) {
-          postMessage({
-            type: 'console',
-            value: {
-              method,
-              values: args.map((a, i) => {
-                if (i === 0 && a instanceof JSStringValue) {
-                  return a.stringValue();
-                }
-                return inspect(a);
-              }),
-            },
-          });
-        }
-      })
-    });
+      }
+    })
+    pop?.();
 
     postMessage({
       type: 'console',
@@ -134,11 +133,9 @@ addEventListener('message', ({ data }) => {
       }
     }
     if (state.get('mode') === 'script') {
-      result = realm.evaluateScript(code, { specifier: 'code.js' }, handleResult);
+      realm.evaluateScript(code, { specifier: 'code.js' }, handleResult);
     } else {
-      result = realm.evaluateModule(code, 'code.mjs', handleResult);
+      realm.evaluateModule(code, 'code.mjs', handleResult);
     }
-    if (!result) agent.resumeEvaluate({});
-    runJobQueue();
   }
 });
