@@ -6,7 +6,7 @@
     "@engine262/playground": "workspace:*",
     "@hono/node-server": "^2.0.8",
     "@types/node": "^26.1.1",
-    "hono": "^4.12.30"
+    "hono": "^4.13.7"
   },
   "scripts": {
     "dev": "node ./serve.mts dev"
